@@ -12,7 +12,13 @@ output: html_document
 
 
 #### Data 
+```{r, include=FALSE, warning=FALSE}
+source(file = "preprocess_data.R")
 
+clean_data2 = clean_data %>% 
+  filter(Year >= 2016, Year <= 2020) %>%
+  mutate(Month = replace(Month, Month==111, 11), Aircraft = replace(Aircraft, Aircraft=="C152", "C-152"))
+```
 3. Specify your data sources, and the type of information you will use (for external data, provide links/references). For each data source, describe the variables and observations used in your analysis. Identify any potential issues (e.g. bias). 
 
 4. Provide the R code that imports the data into R, and formats them appropriately (this can go to the appendix if it is too lengthy). Submit a copy of your external data files, if any. 
