@@ -49,5 +49,5 @@ clean_data = clean_data %>%
   # remove invalid exercises
   mutate(Exercises = as.integer(Exercises)) %>%
   filter(Exercises >= 1 & Exercises <= 30) %>%
-  distinct_all() >%>
+  distinct_all() %>%
   View()
