@@ -1,7 +1,9 @@
 ---
 title: "STAA57 W21 - Project Proposal"
-author:  "Group #? (Adham F, Jason Y, Mohamed T, Wesley M)"
-output: html_document
+author: 'Group #? (Adham F, Jason Y, Mohamed T, Wesley M)'
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 #### Analysis Plan 
@@ -116,7 +118,7 @@ clean_data_processed %>%
 clean_data_processed %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
   group_by(Aircraft) %>%
-  summarise(average_duration = sum(as.numeric(Duration)/4)) %>%
+  summarise(average_duration = sum(as.numeric(Duration))/4) %>%
   ggplot(aes(x=Aircraft, y=average_duration)) + geom_bar(stat = "identity", position="dodge") +
   labs(title='Avg Demand of Each Aircraft Model')
 
@@ -125,7 +127,7 @@ clean_data_processed %>%
   filter(Year <= '2020') %>%
   group_by(Aircraft) %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
-  summarise(average_duration = sum(as.numeric/4)) %>%
+  summarise(average_duration = sum(as.numeric(Duration))/4) %>%
   ggplot(aes(x=Aircraft, y=average_duration)) + geom_bar(stat = "identity", position="dodge") +
   labs(title='Avg Demand of Each Aircraft During Non-COVID Years')
 
