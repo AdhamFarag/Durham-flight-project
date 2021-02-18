@@ -29,10 +29,10 @@ cost is variable for each month/season and for each aircraft so can we figure ou
 
 Graphs:
 1. Demand:
-    1. General barchart for all the data we have
-    2. Barchart average of each month x2 (non covid vs covid)
-    3. Barchart average of each season x2 (non covid vs covid)
-    4. barchart for plane
+    1. Barchat total of all demand per year
+    2. Barchart average demand of each month x2 (all years combined, non-covid years and covid years)
+    3. Barchart average demand of each season x2 (all years combined, non-covid years and covid years)
+    4. Barchart average demand of each plane of each month (all years combined)
 2. Cost:
     1. Barchart for static cost per model
     2. Fuel cost over time per model
@@ -57,3 +57,6 @@ Todos:
 3. webscraping to get data: cost of repairs, parts and overhaul for each aircraft model each year, fuel costs for each model (how many gallons it burns per hour + fuel it burns + cost of that fuel vs time from 2016-2020) - adham
 4. webscraping for + research: weather costs for the aircraft - possibly adham (tom)
 5. write up of all the ideas - (tom)
+
+
+
