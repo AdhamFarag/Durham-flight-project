@@ -114,8 +114,8 @@ clean_data_processed %>%
 
 # Total:
 clean_data_processed %>%
-  group_by(Aircraft) %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
+  group_by(Aircraft) %>%
   summarise(average_duration = sum(as.numeric(Duration)/4)) %>%
   ggplot(aes(x=Aircraft, y=average_duration)) + geom_bar(stat = "identity", position="dodge") +
   labs(title='Avg Demand of Each Aircraft Model')
