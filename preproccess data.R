@@ -40,7 +40,7 @@ raw_data %>%
   select( Instructor_ID, Student_ID, Session_ID, Year, Month, Day, 
           Aircraft, Duration, Training_Type, Exercises, Licence ) -> clean_data
 
-clean_data = clean_data %>% 
+clean_data_processed = clean_data %>% 
   distinct( Session_ID, .keep_all = T) %>% 
   # split the exercises string into a "list" column w str_split()
   mutate( Exercises = str_split(Exercises, ",") ) %>%  
@@ -49,5 +49,8 @@ clean_data = clean_data %>%
   # remove invalid exercises
   mutate(Exercises = as.integer(Exercises)) %>%
   filter(Exercises >= 1 & Exercises <= 30) %>%
-  distinct_all() %>%
-  View()
+  distinct_all() 
+
+View(clean_data_processed)
+
+  
