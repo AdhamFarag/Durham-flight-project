@@ -98,3 +98,75 @@ data_with_covid %>%
   labs(title='Avg Duration Per Month')
 ```
 
+
+```{r}
+clean_data_processed %>%
+  filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
+  distinct(Session_ID, Training_Type, .keep_all=T) %>%
+  group_by(Year)  %>%
+  summarise(total_duration = sum(as.numeric(Duration)))  %>%
+  ggplot(aes(x=Year, y=total_duration)) + geom_bar(stat = "identity") +
+  labs(title='Total Demand of Each Year')
+```
+
+
+```{r}
+
+# Total:
+clean_data_processed %>%
+  group_by(Aircraft) %>%
+  filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
+  summarise(average_duration = sum(as.numeric(Duration)/4)) %>%
+  ggplot(aes(x=Aircraft, y=average_duration)) + geom_bar(stat = "identity", position="dodge") +
+  labs(title='Avg Demand of Each Aircraft Model')
+
+# Non-COVID
+clean_data_processed %>%
+  filter(Year <= '2020') %>%
+  group_by(Aircraft) %>%
+  filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
+  summarise(average_duration = sum(as.numeric/4)) %>%
+  ggplot(aes(x=Aircraft, y=average_duration)) + geom_bar(stat = "identity", position="dodge") +
+  labs(title='Avg Demand of Each Aircraft During Non-COVID Years')
+
+# COVID
+clean_data_processed %>%
+  filter(Year == '2020') %>%
+  group_by(Aircraft) %>%
+  filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
+  summarise(total_duration = sum(as.numeric(Duration))) %>%
+  ggplot(aes(x=Aircraft, y=total_duration)) + geom_bar(stat = "identity", position="dodge") +
+  labs(title='Demand of each Aircraft During COVID Year (2020)')
+```
+
+
+```{r}
+
+clean_data_processed %>%
+  filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
+  group_by(Aircraft, Month) %>%
+  summarise(mean_duration_per_month = sum(as.numeric(Duration)) / 4) %>%
+  arrange(Month) %>%
+  ggplot(aes(x=factor(month.abb[Month], level=month.abb), y=mean_duration_per_month, fill=Aircraft)) + 
+  geom_bar(stat = "identity", position="dodge") +
+  xlab('Month') +
+  ylab('Average Duration') + 
+  labs(title='Avg Aircraft Model Demand on a Monthly Basis')
+```
+
+
+```{r}
+clean_data_processed %>%
+  filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
+  mutate(Season = getSeason(Month)) %>%
+  group_by(Aircraft, Season) %>%
+  summarise(mean_duration_per_season = sum(as.numeric(Duration)) / 4) %>%
+  arrange(Season) %>%
+  ggplot(aes(x=Season, y=mean_duration_per_season, fill=Aircraft)) + 
+  geom_bar(stat = "identity", position="dodge") +
+  xlab('Season') +
+  ylab('Average Duration') + 
+  labs(title='Avg Aircraft Model Demand on a Seasonal Basis')
+```
+
+
