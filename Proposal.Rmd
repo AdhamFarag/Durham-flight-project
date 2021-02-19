@@ -20,6 +20,20 @@ source(file = "preprocess_data.R")
 3. Specify your data sources, and the type of information you will use (for external data, provide links/references). For each data source, describe the variables and observations used in your analysis. Identify any potential issues (e.g. bias). 
 
 4. Provide the R code that imports the data into R, and formats them appropriately (this can go to the appendix if it is too lengthy). Submit a copy of your external data files, if any. 
+```{r , results='hide', include=FALSE, warning=FALSE}
+library(rvest)
+webpage<-read_html("https://www.indexmundi.com/commodities/?commodity=jet-fuel&months=240&currency=cad")
+tbls <- html_nodes(webpage, "table") %>%
+        html_table(fill = TRUE)
+fuel_prices<-as.data.frame(tbls[2])
+colnames(fuel_prices) <- c("Month_Year", "Price","Change")
+clean_data_processed$Month_Words<-month.abb[clean_data_processed$Month]
+clean_data_processed$Month_Year <-(str_c(clean_data_processed$Month_Words, clean_data_processed$Year, sep = " "))
+
+clean_data_processed<-left_join(clean_data_processed,fuel_prices,by="Month_Year",copy = TRUE)
+clean_data_processed <-select(clean_data_processed, -c("Month_Year","Change","Month_Words"))
+colnames(clean_data_processed)[colnames(clean_data_processed) == 'Price'] <- 'Fuel Price Per Gallon'
+```
 
 
 #### Preliminary Results
