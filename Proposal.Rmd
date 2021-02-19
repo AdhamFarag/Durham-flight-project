@@ -1,6 +1,6 @@
 ---
 title: "STAA57 W21 - Project Proposal"
-author: 'Group #? (Adham F, Jason Y, Mohamed T, Wesley M)'
+author: 'Group 4 (Adham F, Jason Y, Mohamed T, Wesley M)'
 output:
   pdf_document: default
   html_document: default
@@ -14,7 +14,7 @@ output:
 
 
 #### Data 
-```{r, include=FALSE, warning=FALSE}
+```{r , results='hide', include=FALSE, warning=FALSE}
 source(file = "preprocess_data.R")
 ```
 3. Specify your data sources, and the type of information you will use (for external data, provide links/references). For each data source, describe the variables and observations used in your analysis. Identify any potential issues (e.g. bias). 
@@ -26,7 +26,7 @@ source(file = "preprocess_data.R")
 
 5. Create at least three data summaries/visualisations which are relevant to your questions, and comment on your results. 
 
-```{r}
+```{r , echo = FALSE, warning=FALSE}
 getSeason <- function(month) {
     ifelse(month >= 3 & month <= 5, "Spring",
            ifelse(month >= 6 & month <= 8, "Summer",
@@ -34,18 +34,18 @@ getSeason <- function(month) {
 }
 ```
 
-```{r}
+```{r , echo = FALSE, warning=FALSE}
 data_with_season <- clean_data_processed %>%
   mutate(season = getSeason(Month))
 ```
 
-```{r}
+```{r , echo = FALSE, warning=FALSE}
 # calculating the demand of the flight training
 data_with_covid <- data_with_season %>% 
   mutate(during_covid = Year >= 2020)
 ```
 
-```{r}
+```{r , echo = FALSE, warning=FALSE}
 # Duration By Month (2016 - 2019 vs 2020) | Side by Side Bar Chart
 data_with_covid %>%
   distinct(Training_Type, Session_ID, .keep_all = T) %>%
@@ -59,7 +59,7 @@ data_with_covid %>%
   labs(title='Avg Duration Per Month')
 ```
 
-```{r}
+```{r , echo = FALSE, warning=FALSE}
 # Duration By Month  | Total Bar Chart
 data_with_covid %>%
   distinct(Training_Type, Session_ID, .keep_all = T) %>%
@@ -73,7 +73,7 @@ data_with_covid %>%
   labs(title='Avg Duration Per Month')
 ```
 
-```{r}
+```{r , echo = FALSE, warning=FALSE}
 # Duration By Season (2016 - 2019 vs 2020) | Side by Side Bar Chart
 data_with_covid %>%
   distinct(Training_Type, Session_ID, .keep_all = T) %>%
@@ -86,7 +86,7 @@ data_with_covid %>%
   xlab('Month') + ylab('Duration') +
   labs(title='Avg Duration Per Month')
 ```
-```{r}
+```{r , echo = FALSE, warning=FALSE}
 # Duration By Season | Total Bar Chart
 data_with_covid %>%
   distinct(Training_Type, Session_ID, .keep_all = T) %>%
@@ -101,7 +101,7 @@ data_with_covid %>%
 ```
 
 
-```{r}
+```{r , echo = FALSE, warning=FALSE}
 clean_data_processed %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
   distinct(Session_ID, Training_Type, .keep_all=T) %>%
@@ -112,7 +112,7 @@ clean_data_processed %>%
 ```
 
 
-```{r}
+```{r , echo = FALSE, warning=FALSE}
 
 # Total:
 clean_data_processed %>%
@@ -142,7 +142,7 @@ clean_data_processed %>%
 ```
 
 
-```{r}
+```{r , echo = FALSE, warning=FALSE}
 
 clean_data_processed %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
@@ -157,7 +157,7 @@ clean_data_processed %>%
 ```
 
 
-```{r}
+```{r , echo = FALSE, warning=FALSE}
 clean_data_processed %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
   mutate(Season = getSeason(Month)) %>%
@@ -170,5 +170,3 @@ clean_data_processed %>%
   ylab('Average Duration') + 
   labs(title='Avg Aircraft Model Demand on a Seasonal Basis')
 ```
-
-
