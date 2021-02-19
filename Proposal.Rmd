@@ -151,15 +151,15 @@ total_demand_by_year
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
 
 # Total:
-clean_data_processed %>%
+avg_demand_each_aircraft <- clean_data_processed %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
   group_by(Aircraft) %>%
-  summarise(average_duration = sum(as.numeric(Duration))/4) %>%
+  summarise(average_duration = sum(as.numeric(Duration))/5) %>%
   ggplot(aes(x=Aircraft, y=average_duration)) + geom_bar(stat = "identity", position="dodge", color="darkblue", fill="darkblue") +
   labs(title='Avg Demand of Each Aircraft Model')
 
 # Non-COVID
-clean_data_processed %>%
+avg_demand_each_aircraft_pre_covid <- clean_data_processed %>%
   filter(Year <= '2020') %>%
   group_by(Aircraft) %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
@@ -168,13 +168,15 @@ clean_data_processed %>%
   labs(title='Avg Demand of Each Aircraft During Non-COVID Years')
 
 # COVID
-clean_data_processed %>%
+avg_demand_each_aircraft_during_covid <- clean_data_processed %>%
   filter(Year == '2020') %>%
   group_by(Aircraft) %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
   summarise(total_duration = sum(as.numeric(Duration))) %>%
   ggplot(aes(x=Aircraft, y=total_duration)) + geom_bar(stat = "identity", position="dodge", color="darkblue", fill="darkblue") +
-  labs(title='Demand of each Aircraft During COVID Year (2020)')
+  labs(title='Demand of Aircraft in 2020') + ylab('Duration')
+avg_demand_each_aircraft
+ggarrange(avg_demand_each_aircraft_pre_covid, avg_demand_each_aircraft_during_covid)
 ```
 
 
@@ -183,7 +185,7 @@ clean_data_processed %>%
 clean_data_processed %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
   group_by(Aircraft, Month) %>%
-  summarise(mean_duration_per_month = sum(as.numeric(Duration)) / 4) %>%
+  summarise(mean_duration_per_month = sum(as.numeric(Duration)) / 5) %>%
   arrange(Month) %>%
   ggplot(aes(x=factor(month.abb[Month], level=month.abb), y=mean_duration_per_month, fill=Aircraft)) + 
   geom_bar(stat = "identity", position="dodge") +
