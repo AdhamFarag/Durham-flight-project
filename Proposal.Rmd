@@ -40,9 +40,13 @@ colnames(clean_data_processed)[colnames(clean_data_processed) == 'Price'] <- 'Fu
 
 5. Create at least three data summaries/visualisations which are relevant to your questions, and comment on your results. 
 
-```{r, echo = FALSE, warning=FALSE, message=FALSE}
+```{r}
 library(tidyverse)
 library(lubridate)
+library(ggpubr)
+```
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
 clean_data_processed %>%
   distinct(Year, Month, Day, .keep_all = T) %>%
   mutate_if(is.numeric, replace_na, 0) %>%
@@ -74,7 +78,7 @@ data_with_covid <- data_with_season %>%
 
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
 # Duration By Month (2016 - 2019 vs 2020) | Side by Side Bar Chart
-data_with_covid %>%
+side_by_side_duration_month <- data_with_covid %>%
   distinct(Training_Type, Session_ID, .keep_all = T) %>%
   mutate_if(is.numeric, replace_na, 0) %>%
   group_by(Month, during_covid, Year) %>%
@@ -83,12 +87,13 @@ data_with_covid %>%
   ggplot(aes(x=factor(month.abb[Month], level=month.abb), y=avg_duration_per_month, fill=during_covid)) + 
   geom_bar(position="dodge", stat="identity") +
   xlab('Month') + ylab('Duration') +
+  scale_x_discrete(breaks = c('Jan', 'Mar', 'May', 'Jul', 'Sep', 'Nov')) +
   labs(title='Avg Duration Per Month')
 ```
 
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
 # Duration By Month  | Total Bar Chart
-data_with_covid %>%
+single_duration_month <-data_with_covid %>%
   distinct(Training_Type, Session_ID, .keep_all = T) %>%
   mutate_if(is.numeric, replace_na, 0) %>%
   group_by(Month, Year) %>%
@@ -102,7 +107,7 @@ data_with_covid %>%
 
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
 # Duration By Season (2016 - 2019 vs 2020) | Side by Side Bar Chart
-data_with_covid %>%
+side_by_side_duration_season <- data_with_covid %>%
   distinct(Training_Type, Session_ID, .keep_all = T) %>%
   mutate_if(is.numeric, replace_na, 0) %>%
   group_by(season, during_covid, Year) %>%
@@ -110,12 +115,12 @@ data_with_covid %>%
   summarise(avg_duration_per_month = mean(total_duration)) %>%
   ggplot(aes(x=factor(season, level=c('Winter', 'Spring', 'Summer', 'Fall')), y=avg_duration_per_month, fill=during_covid)) + 
   geom_bar(position="dodge", stat="identity") +
-  xlab('Month') + ylab('Duration') +
+  xlab('Season') + ylab('Duration') +
   labs(title='Avg Duration Per Season')
 ```
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
 # Duration By Season | Total Bar Chart
-data_with_covid %>%
+single_duration_season <-data_with_covid %>%
   distinct(Training_Type, Session_ID, .keep_all = T) %>%
   mutate_if(is.numeric, replace_na, 0) %>%
   group_by(season, Year) %>%
@@ -123,19 +128,23 @@ data_with_covid %>%
   summarise(avg_duration_per_month = mean(total_duration)) %>%
   ggplot(aes(x=factor(season, level=c('Winter', 'Spring', 'Summer', 'Fall')), y=avg_duration_per_month)) + 
   geom_bar(position="dodge", stat="identity", fill="darkblue") +
-  xlab('Month') + ylab('Duration') +
+  xlab('Season') + ylab('Duration') +
   labs(title='Avg Duration Per Season')
 ```
 
+```{r , echo = FALSE, warning=FALSE, message=FALSE}
+ggarrange(side_by_side_duration_month, single_duration_month, side_by_side_duration_season, single_duration_season)
+```
 
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
-clean_data_processed %>%
+total_demand_by_year <- clean_data_processed %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
   distinct(Session_ID, Training_Type, .keep_all=T) %>%
   group_by(Year)  %>%
   summarise(total_duration = sum(as.numeric(Duration)))  %>%
   ggplot(aes(x=Year, y=total_duration)) + geom_bar(stat = "identity", color="darkblue", fill="darkblue") +
   labs(title='Total Demand of Each Year')
+total_demand_by_year
 ```
 
 
