@@ -96,7 +96,7 @@ side_by_side_duration_month <- clean_data_processed %>%
   xlab('Month') + ylab('Avg Duration / Year') + 
   scale_x_discrete(breaks = c('Jan', 'Mar', 'May', 'Jul', 'Sep', 'Nov')) +
   theme(legend.key.size = unit(0.2, "cm")) +
-  labs(title='Avg Demand Per Month')
+  labs(title='Monthly Demand')
 ```
 
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
@@ -110,7 +110,7 @@ single_duration_month <- clean_data_processed %>%
   ggplot(aes(x=factor(month.abb[Month], level=month.abb), y=avg_duration_per_month)) + 
   geom_bar(position="dodge", stat="identity", color="darkblue", fill="darkblue") +
   xlab('Month') + ylab('Avg Duration / Year') + 
-  labs(title='Avg Demand Per Month')
+  labs(title='Monthly Demand')
 ```
 
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
@@ -126,7 +126,7 @@ side_by_side_duration_season <- clean_data_processed %>%
   xlab('Season') +ylab('Avg Duration / Year') + 
   theme(legend.key.size = unit(0.2, "cm")) +
   theme(axis.text.x=element_text(angle=90)) +
-  labs(title='Avg Demand Per Season')
+  labs(title='Seasonal Demand')
 ```
 
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
@@ -141,7 +141,7 @@ single_duration_season <- clean_data_processed %>%
   geom_bar(position="dodge", stat="identity", fill="darkblue") +
   xlab('Season') + ylab('Avg Duration / Year') + 
   theme(axis.text.x=element_text(angle=90)) +
-  labs(title='Avg Demand Per Season')
+  labs(title='Seasonal Demand')
 ```
 
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
@@ -204,7 +204,7 @@ aircraft_demand_monthly <- clean_data_processed %>%
   ylab('Avg Duration / Year') + 
   theme(legend.key.size = unit(0.2, "cm")) +
   scale_x_discrete(breaks = c('Jan', 'Mar', 'May', 'Jul', 'Sep', 'Nov')) +
-  labs(title='Aircraft Demand By Month')
+  labs(title='Monthly Aircraft Demand')
 
 aircraft_demand_seasonal <- clean_data_processed %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
@@ -217,7 +217,7 @@ aircraft_demand_seasonal <- clean_data_processed %>%
   ylab('Avg Duration / Year') + 
   theme(legend.key.size = unit(0.2, "cm")) +
   theme(axis.text.x=element_text(angle=90)) +
-  labs(title='Aircraft Demand By Season')
+  labs(title='Seasonal Aircraft Demand')
 
 ggarrange(aircraft_demand_seasonal, aircraft_demand_monthly)
 ```
