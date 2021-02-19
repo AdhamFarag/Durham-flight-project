@@ -62,7 +62,7 @@ clean_data_processed = clean_data %>%
   mutate(
     Season = getSeason(Month), 
     Date = make_date(Year, Month, Day), 
-    During_Covid = Year >= 2020
+    COVID = Year >= 2020
   )
 
 # reading in the fuel per gallon price

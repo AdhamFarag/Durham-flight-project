@@ -70,19 +70,19 @@ clean_data_processed %>%
   labs(title='Fuel Price Per Gallon Time Series')
 ```
 
-
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
 # Duration By Month (2016 - 2019 vs 2020) | Side by Side Bar Chart
 side_by_side_duration_month <- clean_data_processed %>%
   distinct(Training_Type, Session_ID, .keep_all = T) %>%
   mutate_if(is.numeric, replace_na, 0) %>%
-  group_by(Month, During_Covid, Year) %>%
+  group_by(Month, COVID, Year) %>%
   summarise(total_duration = sum(Duration)) %>%
   summarise(avg_duration_per_month = mean(total_duration)) %>%
-  ggplot(aes(x=factor(month.abb[Month], level=month.abb), y=avg_duration_per_month, fill=During_Covid)) + 
+  ggplot(aes(x=factor(month.abb[Month], level=month.abb), y=avg_duration_per_month, fill=COVID)) + 
   geom_bar(position="dodge", stat="identity") +
   xlab('Month') + ylab('Duration') +
   scale_x_discrete(breaks = c('Jan', 'Mar', 'May', 'Jul', 'Sep', 'Nov')) +
+  theme(legend.key.size = unit(0.2, "cm")) +
   labs(title='Avg Duration Per Month')
 ```
 
@@ -105,12 +105,14 @@ single_duration_month <- clean_data_processed %>%
 side_by_side_duration_season <- clean_data_processed %>%
   distinct(Training_Type, Session_ID, .keep_all = T) %>%
   mutate_if(is.numeric, replace_na, 0) %>%
-  group_by(Season, During_Covid, Year) %>%
+  group_by(Season, COVID, Year) %>%
   summarise(total_duration = sum(Duration)) %>%
   summarise(avg_duration_per_month = mean(total_duration)) %>%
-  ggplot(aes(x=factor(Season, level=c('Winter', 'Spring', 'Summer', 'Fall')), y=avg_duration_per_month, fill=During_Covid)) + 
+  ggplot(aes(x=factor(Season, level=c('Winter', 'Spring', 'Summer', 'Fall')), y=avg_duration_per_month, fill=COVID)) + 
   geom_bar(position="dodge", stat="identity") +
   xlab('Season') + ylab('Duration') +
+  theme(legend.key.size = unit(0.2, "cm")) +
+  theme(axis.text.x=element_text(angle=90)) +
   labs(title='Avg Duration Per Season')
 ```
 
@@ -125,11 +127,17 @@ single_duration_season <- clean_data_processed %>%
   ggplot(aes(x=factor(Season, level=c('Winter', 'Spring', 'Summer', 'Fall')), y=avg_duration_per_month)) + 
   geom_bar(position="dodge", stat="identity", fill="darkblue") +
   xlab('Season') + ylab('Duration') +
+  theme(axis.text.x=element_text(angle=90)) +
   labs(title='Avg Duration Per Season')
 ```
 
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
-ggarrange(side_by_side_duration_month, single_duration_month, side_by_side_duration_season, single_duration_season)
+ggarrange(
+  single_duration_month, 
+  side_by_side_duration_month, 
+  single_duration_season, 
+  side_by_side_duration_season
+)
 ```
 
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
@@ -138,7 +146,8 @@ total_demand_by_year <- clean_data_processed %>%
   distinct(Session_ID, Training_Type, .keep_all=T) %>%
   group_by(Year)  %>%
   summarise(total_duration = sum(as.numeric(Duration)))  %>%
-  ggplot(aes(x=Year, y=total_duration)) + geom_bar(stat = "identity", color="darkblue", fill="darkblue") +
+  ggplot(aes(x=Year, y=total_duration)) + 
+  geom_bar(stat = "identity", color="darkblue", fill="darkblue") +
   labs(title='Total Demand of Each Year')
 total_demand_by_year
 ```
@@ -149,7 +158,8 @@ clean_data_processed %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
   group_by(Aircraft) %>%
   summarise(average_duration = sum(as.numeric(Duration))/4) %>%
-  ggplot(aes(x=Aircraft, y=average_duration)) + geom_bar(stat = "identity", position="dodge", color="darkblue", fill="darkblue") +
+  ggplot(aes(x=Aircraft, y=average_duration)) + 
+  geom_bar(stat = "identity", position="dodge", color="darkblue", fill="darkblue") +
   labs(title='Avg Demand of Each Aircraft Model')
 
 # Non-COVID
@@ -158,7 +168,8 @@ clean_data_processed %>%
   group_by(Aircraft) %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
   summarise(average_duration = sum(as.numeric(Duration))/4) %>%
-  ggplot(aes(x=Aircraft, y=average_duration)) + geom_bar(stat = "identity", position="dodge", color="darkblue", fill="darkblue") +
+  ggplot(aes(x=Aircraft, y=average_duration)) + 
+  geom_bar(stat = "identity", position="dodge", color="darkblue", fill="darkblue") +
   labs(title='Avg Demand of Each Aircraft During Non-COVID Years')
 
 # COVID
@@ -167,13 +178,13 @@ clean_data_processed %>%
   group_by(Aircraft) %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
   summarise(total_duration = sum(as.numeric(Duration))) %>%
-  ggplot(aes(x=Aircraft, y=total_duration)) + geom_bar(stat = "identity", position="dodge", color="darkblue", fill="darkblue") +
+  ggplot(aes(x=Aircraft, y=total_duration)) + 
+  geom_bar(stat = "identity", position="dodge", color="darkblue", fill="darkblue") +
   labs(title='Demand of each Aircraft During COVID Year (2020)')
 ```
 
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
-
-clean_data_processed %>%
+aircraft_demand_monthly <- clean_data_processed %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
   group_by(Aircraft, Month) %>%
   summarise(mean_duration_per_month = sum(as.numeric(Duration)) / 4) %>%
@@ -182,11 +193,11 @@ clean_data_processed %>%
   geom_bar(stat = "identity", position="dodge") +
   xlab('Month') +
   ylab('Average Duration') + 
-  labs(title='Avg Aircraft Model Demand on a Monthly Basis')
-```
+  theme(legend.key.size = unit(0.2, "cm")) +
+  scale_x_discrete(breaks = c('Jan', 'Mar', 'May', 'Jul', 'Sep', 'Nov')) +
+  labs(title='Aircraft Duration By Month')
 
-```{r , echo = FALSE, warning=FALSE, message=FALSE}
-clean_data_processed %>%
+aircraft_demand_seasonal <- clean_data_processed %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
   group_by(Aircraft, Season) %>%
   summarise(mean_duration_per_season = sum(as.numeric(Duration)) / 4) %>%
@@ -195,5 +206,9 @@ clean_data_processed %>%
   geom_bar(stat = "identity", position="dodge") +
   xlab('Season') +
   ylab('Average Duration') + 
-  labs(title='Avg Aircraft Model Demand on a Seasonal Basis')
+  theme(legend.key.size = unit(0.2, "cm")) +
+  theme(axis.text.x=element_text(angle=90)) +
+  labs(title='Aircraft Duration By Season')
+
+ggarrange(aircraft_demand_monthly, aircraft_demand_seasonal)
 ```
