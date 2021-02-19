@@ -40,7 +40,7 @@ colnames(clean_data_processed)[colnames(clean_data_processed) == 'Price'] <- 'Fu
 
 5. Create at least three data summaries/visualisations which are relevant to your questions, and comment on your results. 
 
-```{r}
+```{r , results='hide', include=FALSE, warning=FALSE}
 library(tidyverse)
 library(lubridate)
 library(ggpubr)
