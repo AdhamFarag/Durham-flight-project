@@ -51,6 +51,6 @@ clean_data_processed = clean_data %>%
   filter(Exercises >= 1 & Exercises <= 30) %>%
   distinct_all() 
 
-View(clean_data_processed)
+#View(clean_data_processed)
 
   
