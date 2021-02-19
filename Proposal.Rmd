@@ -54,71 +54,32 @@ We plan on using the following external data sources:
 
 
 *Provide the R code that imports the data into R, and formats them appropriately (this can go to the appendix if it is too lengthy). Submit a copy of your external data files, if any. *
-```{r , results='hide', include=FALSE, warning=FALSE}
-library(rvest)
-webpage<-read_html("https://www.indexmundi.com/commodities/?commodity=jet-fuel&months=240&currency=cad")
-tbls <- html_nodes(webpage, "table") %>%
-        html_table(fill = TRUE)
-fuel_prices<-as.data.frame(tbls[2])
-colnames(fuel_prices) <- c("Month_Year", "Price","Change")
-clean_data_processed$Month_Words<-month.abb[clean_data_processed$Month]
-clean_data_processed$Month_Year <-(str_c(clean_data_processed$Month_Words, clean_data_processed$Year, sep = " "))
-
-clean_data_processed<-left_join(clean_data_processed,fuel_prices,by="Month_Year",copy = TRUE)
-clean_data_processed <-select(clean_data_processed, -c("Month_Year","Change","Month_Words"))
-colnames(clean_data_processed)[colnames(clean_data_processed) == 'Price'] <- 'Fuel Price Per Gallon'
-```
 
 
 ### Preliminary Results
 
 *Create at least three data summaries/visualisations which are relevant to your questions, and comment on your results. *
 
-```{r , results='hide', include=FALSE, warning=FALSE}
-library(tidyverse)
-library(lubridate)
-library(ggpubr)
-```
-
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
 clean_data_processed %>%
   distinct(Year, Month, Day, .keep_all = T) %>%
   mutate_if(is.numeric, replace_na, 0) %>%
-  mutate(date = make_date(Year, Month, Day)) %>%
-  ggplot(aes(x=date, y=`Fuel Price Per Gallon`)) + 
+  ggplot(aes(x=Date, y=`Fuel Price Per Gallon`)) + 
   geom_line(position="dodge", stat="identity", color="darkblue") +
   xlab('Date') + ylab('Fuel Price Per Gallon') +
   labs(title='Fuel Price Per Gallon Time Series')
 ```
 
-```{r , echo = FALSE, warning=FALSE}
-getSeason <- function(month) {
-    ifelse(month >= 3 & month <= 5, "Spring",
-           ifelse(month >= 6 & month <= 8, "Summer",
-                  ifelse(month >= 9 & month <= 11, "Fall", "Winter")))
-}
-```
-
-```{r , echo = FALSE, warning=FALSE}
-data_with_season <- clean_data_processed %>%
-  mutate(season = getSeason(Month))
-```
-
-```{r , echo = FALSE, warning=FALSE}
-# calculating the demand of the flight training
-data_with_covid <- data_with_season %>% 
-  mutate(during_covid = Year >= 2020)
-```
 
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
 # Duration By Month (2016 - 2019 vs 2020) | Side by Side Bar Chart
-side_by_side_duration_month <- data_with_covid %>%
+side_by_side_duration_month <- clean_data_processed %>%
   distinct(Training_Type, Session_ID, .keep_all = T) %>%
   mutate_if(is.numeric, replace_na, 0) %>%
-  group_by(Month, during_covid, Year) %>%
+  group_by(Month, During_Covid, Year) %>%
   summarise(total_duration = sum(Duration)) %>%
   summarise(avg_duration_per_month = mean(total_duration)) %>%
-  ggplot(aes(x=factor(month.abb[Month], level=month.abb), y=avg_duration_per_month, fill=during_covid)) + 
+  ggplot(aes(x=factor(month.abb[Month], level=month.abb), y=avg_duration_per_month, fill=During_Covid)) + 
   geom_bar(position="dodge", stat="identity") +
   xlab('Month') + ylab('Duration') +
   scale_x_discrete(breaks = c('Jan', 'Mar', 'May', 'Jul', 'Sep', 'Nov')) +
@@ -127,7 +88,7 @@ side_by_side_duration_month <- data_with_covid %>%
 
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
 # Duration By Month  | Total Bar Chart
-single_duration_month <-data_with_covid %>%
+single_duration_month <- clean_data_processed %>%
   distinct(Training_Type, Session_ID, .keep_all = T) %>%
   mutate_if(is.numeric, replace_na, 0) %>%
   group_by(Month, Year) %>%
@@ -141,26 +102,27 @@ single_duration_month <-data_with_covid %>%
 
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
 # Duration By Season (2016 - 2019 vs 2020) | Side by Side Bar Chart
-side_by_side_duration_season <- data_with_covid %>%
+side_by_side_duration_season <- clean_data_processed %>%
   distinct(Training_Type, Session_ID, .keep_all = T) %>%
   mutate_if(is.numeric, replace_na, 0) %>%
-  group_by(season, during_covid, Year) %>%
+  group_by(Season, During_Covid, Year) %>%
   summarise(total_duration = sum(Duration)) %>%
   summarise(avg_duration_per_month = mean(total_duration)) %>%
-  ggplot(aes(x=factor(season, level=c('Winter', 'Spring', 'Summer', 'Fall')), y=avg_duration_per_month, fill=during_covid)) + 
+  ggplot(aes(x=factor(Season, level=c('Winter', 'Spring', 'Summer', 'Fall')), y=avg_duration_per_month, fill=During_Covid)) + 
   geom_bar(position="dodge", stat="identity") +
   xlab('Season') + ylab('Duration') +
   labs(title='Avg Duration Per Season')
 ```
+
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
 # Duration By Season | Total Bar Chart
-single_duration_season <-data_with_covid %>%
+single_duration_season <- clean_data_processed %>%
   distinct(Training_Type, Session_ID, .keep_all = T) %>%
   mutate_if(is.numeric, replace_na, 0) %>%
-  group_by(season, Year) %>%
+  group_by(Season, Year) %>%
   summarise(total_duration = sum(Duration)) %>%
   summarise(avg_duration_per_month = mean(total_duration)) %>%
-  ggplot(aes(x=factor(season, level=c('Winter', 'Spring', 'Summer', 'Fall')), y=avg_duration_per_month)) + 
+  ggplot(aes(x=factor(Season, level=c('Winter', 'Spring', 'Summer', 'Fall')), y=avg_duration_per_month)) + 
   geom_bar(position="dodge", stat="identity", fill="darkblue") +
   xlab('Season') + ylab('Duration') +
   labs(title='Avg Duration Per Season')
@@ -180,7 +142,6 @@ total_demand_by_year <- clean_data_processed %>%
   labs(title='Total Demand of Each Year')
 total_demand_by_year
 ```
-
 
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
 # Total:
@@ -210,7 +171,6 @@ clean_data_processed %>%
   labs(title='Demand of each Aircraft During COVID Year (2020)')
 ```
 
-
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
 
 clean_data_processed %>%
@@ -225,11 +185,9 @@ clean_data_processed %>%
   labs(title='Avg Aircraft Model Demand on a Monthly Basis')
 ```
 
-
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
 clean_data_processed %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
-  mutate(Season = getSeason(Month)) %>%
   group_by(Aircraft, Season) %>%
   summarise(mean_duration_per_season = sum(as.numeric(Duration)) / 4) %>%
   arrange(Season) %>%
