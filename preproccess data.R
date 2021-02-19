@@ -59,9 +59,11 @@ clean_data_processed = clean_data %>%
   mutate(Exercises = as.integer(Exercises)) %>%
   filter(Exercises >= 1 & Exercises <= 30) %>%
   distinct_all() %>%
-  mutate(Season = getSeason(Month)) %>%
-  mutate(Date = make_date(Year, Month, Day)) %>%
-  mutate(During_Covid = Year >= 2020)
+  mutate(
+    Season = getSeason(Month), 
+    Date = make_date(Year, Month, Day), 
+    During_Covid = Year >= 2020
+  )
 
 # reading in the fuel per gallon price
 webpage <- read_html("https://www.indexmundi.com/commodities/?commodity=jet-fuel&months=240&currency=cad")
