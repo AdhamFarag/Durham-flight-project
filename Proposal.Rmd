@@ -59,7 +59,7 @@ data_with_covid <- data_with_season %>%
   mutate(during_covid = Year >= 2020)
 ```
 
-```{r , echo = FALSE, warning=FALSE}
+```{r , echo = FALSE, warning=FALSE, message=FALSE}
 # Duration By Month (2016 - 2019 vs 2020) | Side by Side Bar Chart
 data_with_covid %>%
   distinct(Training_Type, Session_ID, .keep_all = T) %>%
@@ -73,7 +73,7 @@ data_with_covid %>%
   labs(title='Avg Duration Per Month')
 ```
 
-```{r , echo = FALSE, warning=FALSE}
+```{r , echo = FALSE, warning=FALSE, message=FALSE}
 # Duration By Month  | Total Bar Chart
 data_with_covid %>%
   distinct(Training_Type, Session_ID, .keep_all = T) %>%
@@ -87,7 +87,7 @@ data_with_covid %>%
   labs(title='Avg Duration Per Month')
 ```
 
-```{r , echo = FALSE, warning=FALSE}
+```{r , echo = FALSE, warning=FALSE, message=FALSE}
 # Duration By Season (2016 - 2019 vs 2020) | Side by Side Bar Chart
 data_with_covid %>%
   distinct(Training_Type, Session_ID, .keep_all = T) %>%
@@ -98,9 +98,9 @@ data_with_covid %>%
   ggplot(aes(x=factor(season, level=c('Winter', 'Spring', 'Summer', 'Fall')), y=avg_duration_per_month, fill=during_covid)) + 
   geom_bar(position="dodge", stat="identity") +
   xlab('Month') + ylab('Duration') +
-  labs(title='Avg Duration Per Month')
+  labs(title='Avg Duration Per Season')
 ```
-```{r , echo = FALSE, warning=FALSE}
+```{r , echo = FALSE, warning=FALSE, message=FALSE}
 # Duration By Season | Total Bar Chart
 data_with_covid %>%
   distinct(Training_Type, Session_ID, .keep_all = T) %>%
@@ -111,11 +111,11 @@ data_with_covid %>%
   ggplot(aes(x=factor(season, level=c('Winter', 'Spring', 'Summer', 'Fall')), y=avg_duration_per_month)) + 
   geom_bar(position="dodge", stat="identity") +
   xlab('Month') + ylab('Duration') +
-  labs(title='Avg Duration Per Month')
+  labs(title='Avg Duration Per Season')
 ```
 
 
-```{r , echo = FALSE, warning=FALSE}
+```{r , echo = FALSE, warning=FALSE, message=FALSE}
 clean_data_processed %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
   distinct(Session_ID, Training_Type, .keep_all=T) %>%
@@ -126,7 +126,7 @@ clean_data_processed %>%
 ```
 
 
-```{r , echo = FALSE, warning=FALSE}
+```{r , echo = FALSE, warning=FALSE, message=FALSE}
 
 # Total:
 clean_data_processed %>%
@@ -156,7 +156,7 @@ clean_data_processed %>%
 ```
 
 
-```{r , echo = FALSE, warning=FALSE}
+```{r , echo = FALSE, warning=FALSE, message=FALSE}
 
 clean_data_processed %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
@@ -171,7 +171,7 @@ clean_data_processed %>%
 ```
 
 
-```{r , echo = FALSE, warning=FALSE}
+```{r , echo = FALSE, warning=FALSE, message=FALSE}
 clean_data_processed %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
   mutate(Season = getSeason(Month)) %>%
