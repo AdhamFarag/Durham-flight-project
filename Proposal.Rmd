@@ -60,7 +60,7 @@ We plan on using the following external data sources:
 
 *Create at least three data summaries/visualisations which are relevant to your questions, and comment on your results. *
 
-```{r, echo = FALSE, warning=FALSE, message=FALSE}
+```{r, echo = FALSE, warning=FALSE, message=FALSE, fig.height=2}
 clean_data_processed %>%
   distinct(Year, Month, Day, .keep_all = T) %>%
   mutate_if(is.numeric, replace_na, 0) %>%
@@ -140,7 +140,7 @@ ggarrange(
 )
 ```
 
-```{r , echo = FALSE, warning=FALSE, message=FALSE}
+```{r , echo = FALSE, warning=FALSE, message=FALSE, fig.height=2}
 total_demand_by_year <- clean_data_processed %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
   distinct(Session_ID, Training_Type, .keep_all=T) %>%
@@ -152,18 +152,21 @@ total_demand_by_year <- clean_data_processed %>%
 total_demand_by_year
 ```
 
-```{r , echo = FALSE, warning=FALSE, message=FALSE}
+```{r , echo = FALSE, warning=FALSE, message=FALSE, fig.height=2}
 # Total:
-clean_data_processed %>%
+aircraft_demand_total <- clean_data_processed %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
   group_by(Aircraft) %>%
-  summarise(average_duration = sum(as.numeric(Duration))/4) %>%
+  summarise(average_duration = sum(as.numeric(Duration))/5) %>%
   ggplot(aes(x=Aircraft, y=average_duration)) + 
   geom_bar(stat = "identity", position="dodge", color="darkblue", fill="darkblue") +
   labs(title='Avg Demand of Each Aircraft Model')
+aircraft_demand_total
+```
 
+```{r , echo = FALSE, warning=FALSE, message=FALSE, fig.height=2}
 # Non-COVID
-clean_data_processed %>%
+aircraft_demand_pre_covid <- clean_data_processed %>%
   filter(Year <= '2020') %>%
   group_by(Aircraft) %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
@@ -173,7 +176,7 @@ clean_data_processed %>%
   labs(title='Avg Demand of Each Aircraft During Non-COVID Years')
 
 # COVID
-clean_data_processed %>%
+aircraft_demand_covid <- clean_data_processed %>%
   filter(Year == '2020') %>%
   group_by(Aircraft) %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
@@ -181,6 +184,8 @@ clean_data_processed %>%
   ggplot(aes(x=Aircraft, y=total_duration)) + 
   geom_bar(stat = "identity", position="dodge", color="darkblue", fill="darkblue") +
   labs(title='Demand of each Aircraft During COVID Year (2020)')
+
+ggarrange(aircraft_demand_pre_covid, aircraft_demand_covid)
 ```
 
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
