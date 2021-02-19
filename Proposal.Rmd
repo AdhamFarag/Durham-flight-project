@@ -40,6 +40,19 @@ colnames(clean_data_processed)[colnames(clean_data_processed) == 'Price'] <- 'Fu
 
 5. Create at least three data summaries/visualisations which are relevant to your questions, and comment on your results. 
 
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(lubridate)
+clean_data_processed %>%
+  distinct(Year, Month, Day, .keep_all = T) %>%
+  mutate_if(is.numeric, replace_na, 0) %>%
+  mutate(date = make_date(Year, Month, Day)) %>%
+  ggplot(aes(x=date, y=`Fuel Price Per Gallon`)) + 
+  geom_line(position="dodge", stat="identity", color="darkblue") +
+  xlab('Date') + ylab('Fuel Price Per Gallon') +
+  labs(title='Fuel Price Per Gallon Time Series')
+```
+
 ```{r , echo = FALSE, warning=FALSE}
 getSeason <- function(month) {
     ifelse(month >= 3 & month <= 5, "Spring",
