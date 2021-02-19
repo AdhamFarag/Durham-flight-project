@@ -90,7 +90,7 @@ side_by_side_duration_month <- clean_data_processed %>%
   mutate_if(is.numeric, replace_na, 0) %>%
   group_by(Month, COVID, Year) %>%
   summarise(total_duration = sum(Duration)) %>%
-  summarise(avg_duration_per_month = mean(total_duration)) %>%
+  summarise(avg_duration_per_month = sum(total_duration) / ifelse(COVID == TRUE, 1, 4)) %>%
   ggplot(aes(x=factor(month.abb[Month], level=month.abb), y=avg_duration_per_month, fill=COVID)) + 
   geom_bar(position="dodge", stat="identity") +
   xlab('Month') + ylab('Avg Duration / Year') + 
@@ -106,7 +106,7 @@ single_duration_month <- clean_data_processed %>%
   mutate_if(is.numeric, replace_na, 0) %>%
   group_by(Month, Year) %>%
   summarise(total_duration = sum(Duration)) %>%
-  summarise(avg_duration_per_month = mean(total_duration)) %>%
+  summarise(avg_duration_per_month = sum(total_duration) / 5) %>%
   ggplot(aes(x=factor(month.abb[Month], level=month.abb), y=avg_duration_per_month)) + 
   geom_bar(position="dodge", stat="identity", color="darkblue", fill="darkblue") +
   xlab('Month') + ylab('Avg Duration / Year') + 
@@ -120,7 +120,7 @@ side_by_side_duration_season <- clean_data_processed %>%
   mutate_if(is.numeric, replace_na, 0) %>%
   group_by(Season, COVID, Year) %>%
   summarise(total_duration = sum(Duration)) %>%
-  summarise(avg_duration_per_month = mean(total_duration)) %>%
+  summarise(avg_duration_per_month = sum(total_duration) / ifelse(COVID == TRUE, 1, 4)) %>%
   ggplot(aes(x=factor(Season, level=c('Winter', 'Spring', 'Summer', 'Fall')), y=avg_duration_per_month, fill=COVID)) + 
   geom_bar(position="dodge", stat="identity") +
   xlab('Season') +ylab('Avg Duration / Year') + 
@@ -136,7 +136,7 @@ single_duration_season <- clean_data_processed %>%
   mutate_if(is.numeric, replace_na, 0) %>%
   group_by(Season, Year) %>%
   summarise(total_duration = sum(Duration)) %>%
-  summarise(avg_duration_per_month = mean(total_duration)) %>%
+  summarise(avg_duration_per_month = sum(total_duration) / 5) %>%
   ggplot(aes(x=factor(Season, level=c('Winter', 'Spring', 'Summer', 'Fall')), y=avg_duration_per_month)) + 
   geom_bar(position="dodge", stat="identity", fill="darkblue") +
   xlab('Season') + ylab('Avg Duration / Year') + 
