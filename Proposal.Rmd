@@ -34,7 +34,7 @@ Data analysis plan per question:
   a. Average fuel costs for each month/season using all 2016-2020 data: see the trend over the months/seasons as an indication of fuel costs fluctuations for each month/season.  
   b. Average fuel costs for each month/season using 2016-2019 data vs 2020 data (COVID-19 comparison): comparison of trends over the months/seasons vs COVID-19 as an indication of the impact COVID-19 on fuel costs.  
 
-
+  
 3. 
   a. Understand how percipitation affects the average aircraft operating cost per hour (Cost on y-axis; precipitation level on x-axis).  
   b. Understand how the average percipitation fluctuates on a monthly/seasonal level (Precipitation on y-axis and x-axis will months/seasons).  
@@ -74,16 +74,7 @@ We plan on using the following external data sources:
 
 *Create at least three data summaries/visualisations which are relevant to your questions, and comment on your results. *
 
-```{r, echo = FALSE, warning=FALSE, message=FALSE, fig.height=2}
-clean_data_processed %>%
-  distinct(Year, Month, Day, .keep_all = T) %>%
-  mutate_if(is.numeric, replace_na, 0) %>%
-  ggplot(aes(x=Date, y=`Fuel Price Per Gallon`)) + 
-  geom_line(position="dodge", stat="identity", color="darkblue") +
-  xlab('Time') + ylab('Fuel Price Per Gallon') +
-  scale_x_date(breaks = 'year') +
-  labs(title='Fuel Price Per Gallon Time Series')
-```
+
 ```{r , echo = FALSE, warning=FALSE, message=FALSE, fig.height=2}
 total_demand_by_year <- clean_data_processed %>%
   filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
@@ -96,6 +87,7 @@ total_demand_by_year <- clean_data_processed %>%
   labs(title='Total Demand of Each Year')
 total_demand_by_year
 ```
+By the chart above, the total demand increased with COVID-19 there we expect that this will lead to higher total aircraft operating costs. We need to find the optimal conditions that will minimize aircraft operating costs during this spike.
 
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
 # Duration By Month (2016 - 2019 vs 2020) | Side by Side Bar Chart
@@ -160,81 +152,30 @@ single_duration_season <- clean_data_processed %>%
 
 ```{r , echo = FALSE, warning=FALSE, message=FALSE}
 ggarrange(
-  single_duration_season, 
-  side_by_side_duration_season,
   single_duration_month, 
-  side_by_side_duration_month
+  side_by_side_duration_month,
+  single_duration_season, 
+  side_by_side_duration_season
 )
 ```
 
-```{r , echo = FALSE, warning=FALSE, message=FALSE, fig.height=2}
-# Total:
-aircraft_demand_total <- clean_data_processed %>%
-  filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
-  group_by(Aircraft) %>%
-  summarise(average_duration = sum(as.numeric(Duration))/5) %>%
-  ggplot(aes(x=Aircraft, y=average_duration)) + 
-  geom_bar(stat = "identity", position="dodge", color="darkblue", fill="darkblue") +
-  ylab('Avg Duration / Year') + 
-  labs(title='Aircraft Demand')
-aircraft_demand_total
+We can see from the graphs that the month with the most demand is August.
+
+Within the COVID-19, the pre-2020 data can actually be interpreted as skewed towards lower values since the overall demand in 2016-2018 is relatively low. Regardless of COVID-19, the month of most demand was August.
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE, fig.height=2}
+clean_data_processed %>%
+  distinct(Year, Month, Day, .keep_all = T) %>%
+  mutate_if(is.numeric, replace_na, 0) %>%
+  ggplot(aes(x=Date, y=`Fuel Price Per Gallon`)) + 
+  geom_line(position="dodge", stat="identity", color="darkblue") +
+  xlab('Time') + ylab('Fuel Price Per Gallon') +
+  scale_x_date(breaks = 'year') +
+  labs(title='Fuel Price Per Gallon Time Series')
 ```
 
-```{r , echo = FALSE, warning=FALSE, message=FALSE, fig.height=2}
-# Non-COVID
-aircraft_demand_pre_covid <- clean_data_processed %>%
-  filter(Year <= '2020') %>%
-  group_by(Aircraft) %>%
-  filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
-  summarise(average_duration = sum(as.numeric(Duration))/4) %>%
-  ggplot(aes(x=Aircraft, y=average_duration)) + 
-  geom_bar(stat = "identity", position="dodge", color="darkblue", fill="darkblue") +
-  ylab('Avg Duration / Year') + 
-  labs(title='Aircraft Demand Before COVID')
+From the above graph, it can be seen there was a significant decrease in the jet fuel price per gallon, leading to lower aircraft operating costs. Therefore, we expect that the average and total estimated aircraft costs to be lower in 2020.
 
-# COVID
-aircraft_demand_covid <- clean_data_processed %>%
-  filter(Year == '2020') %>%
-  group_by(Aircraft) %>%
-  filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
-  summarise(total_duration = sum(as.numeric(Duration))) %>%
-  ggplot(aes(x=Aircraft, y=total_duration)) + 
-  geom_bar(stat = "identity", position="dodge", color="darkblue", fill="darkblue") +
-  ylab('Avg Duration / Year') + 
-  labs(title='Aircraft Demand During COVID')
-
-ggarrange(aircraft_demand_pre_covid, aircraft_demand_covid)
-```
-
-```{r , echo = FALSE, warning=FALSE, message=FALSE, fig.height=2}
-aircraft_demand_monthly <- clean_data_processed %>%
-  filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
-  group_by(Aircraft, Month) %>%
-  summarise(mean_duration_per_month = sum(as.numeric(Duration)) / 5) %>%
-  arrange(Month) %>%
-  ggplot(aes(x=factor(month.abb[Month], level=month.abb), y=mean_duration_per_month, fill=Aircraft)) + 
-  geom_bar(stat = "identity", position="dodge") +
-  xlab('Month') +
-  ylab('Avg Duration / Year') + 
-  theme(legend.key.size = unit(0.2, "cm")) +
-  scale_x_discrete(breaks = c('Jan', 'Mar', 'May', 'Jul', 'Sep', 'Nov')) +
-  labs(title='Monthly Aircraft Demand')
-
-aircraft_demand_seasonal <- clean_data_processed %>%
-  filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
-  group_by(Aircraft, Season) %>%
-  summarise(mean_duration_per_season = sum(as.numeric(Duration)) / 5) %>%
-  arrange(Season) %>%
-  ggplot(aes(x=Season, y=mean_duration_per_season, fill=Aircraft)) + 
-  geom_bar(stat = "identity", position="dodge") +
-  xlab('Season') +
-  ylab('Avg Duration / Year') + 
-  theme(legend.key.size = unit(0.2, "cm")) +
-  theme(axis.text.x=element_text(angle=90)) +
-  labs(title='Seasonal Aircraft Demand')
-
-ggarrange(aircraft_demand_seasonal, aircraft_demand_monthly)
-```
 
 \newpage
 
@@ -321,3 +262,76 @@ clean_data_processed <- left_join(clean_data_processed,fuel_prices,by="Month_Yea
 clean_data_processed <- select(clean_data_processed, -c("Month_Year","Change","Month_Words"))
 colnames(clean_data_processed)[colnames(clean_data_processed) == 'Price'] <- 'Fuel Price Per Gallon'
 ```
+# Demand per aircraft
+Below is an attempt to see if an interesting analysis can be made from examing the demand per aircraft and hence the aircraft operating costs per airctaft.
+
+```{r , echo = FALSE, warning=FALSE, message=FALSE, fig.height=2}
+# Total:
+aircraft_demand_total <- clean_data_processed %>%
+  filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
+  group_by(Aircraft) %>%
+  summarise(average_duration = sum(as.numeric(Duration))/5) %>%
+  ggplot(aes(x=Aircraft, y=average_duration)) + 
+  geom_bar(stat = "identity", position="dodge", color="darkblue", fill="darkblue") +
+  ylab('Avg Duration / Year') + 
+  labs(title='Aircraft Demand')
+aircraft_demand_total
+```
+
+```{r , echo = FALSE, warning=FALSE, message=FALSE, fig.height=2}
+# Non-COVID
+aircraft_demand_pre_covid <- clean_data_processed %>%
+  filter(Year <= '2020') %>%
+  group_by(Aircraft) %>%
+  filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
+  summarise(average_duration = sum(as.numeric(Duration))/4) %>%
+  ggplot(aes(x=Aircraft, y=average_duration)) + 
+  geom_bar(stat = "identity", position="dodge", color="darkblue", fill="darkblue") +
+  ylab('Avg Duration / Year') + 
+  labs(title='Aircraft Demand Before COVID')
+
+# COVID
+aircraft_demand_covid <- clean_data_processed %>%
+  filter(Year == '2020') %>%
+  group_by(Aircraft) %>%
+  filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
+  summarise(total_duration = sum(as.numeric(Duration))) %>%
+  ggplot(aes(x=Aircraft, y=total_duration)) + 
+  geom_bar(stat = "identity", position="dodge", color="darkblue", fill="darkblue") +
+  ylab('Avg Duration / Year') + 
+  labs(title='Aircraft Demand During COVID')
+
+ggarrange(aircraft_demand_pre_covid, aircraft_demand_covid)
+```
+
+```{r , echo = FALSE, warning=FALSE, message=FALSE, fig.height=2}
+aircraft_demand_monthly <- clean_data_processed %>%
+  filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
+  group_by(Aircraft, Month) %>%
+  summarise(mean_duration_per_month = sum(as.numeric(Duration)) / 5) %>%
+  arrange(Month) %>%
+  ggplot(aes(x=factor(month.abb[Month], level=month.abb), y=mean_duration_per_month, fill=Aircraft)) + 
+  geom_bar(stat = "identity", position="dodge") +
+  xlab('Month') +
+  ylab('Avg Duration / Year') + 
+  theme(legend.key.size = unit(0.2, "cm")) +
+  scale_x_discrete(breaks = c('Jan', 'Mar', 'May', 'Jul', 'Sep', 'Nov')) +
+  labs(title='Monthly Aircraft Demand')
+
+aircraft_demand_seasonal <- clean_data_processed %>%
+  filter(Aircraft %in% c('C-172', 'C-150', 'C-152', 'FMX-1000')) %>%
+  group_by(Aircraft, Season) %>%
+  summarise(mean_duration_per_season = sum(as.numeric(Duration)) / 5) %>%
+  arrange(Season) %>%
+  ggplot(aes(x=Season, y=mean_duration_per_season, fill=Aircraft)) + 
+  geom_bar(stat = "identity", position="dodge") +
+  xlab('Season') +
+  ylab('Avg Duration / Year') + 
+  theme(legend.key.size = unit(0.2, "cm")) +
+  theme(axis.text.x=element_text(angle=90)) +
+  labs(title='Seasonal Aircraft Demand')
+
+ggarrange(aircraft_demand_seasonal, aircraft_demand_monthly)
+```
+
+
