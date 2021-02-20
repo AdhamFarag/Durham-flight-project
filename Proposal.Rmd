@@ -23,30 +23,25 @@ Questions:
 
 *Specify your data analysis plan. Describe (in words) how you will address these questions using data.*
 
-Data analysis plan per question:  
+Data analysis plan per question:
 
-1.  
-  a. Yearly demand trend: aggregate the duration data yearly and observe the trend in the demand.  
-  b. Average demand for each month/season using all 2016-2020 data: see the trend over the months/seasons as an indication of total costs for each month/season.  
-  c. Average demand for each month/season using 2016-2019 data vs 2020 data (COVID-19 comparison): comparison of trends over the months/seasons vs COVID-19 as an indication of the impact COVID-19 on total costs.  
-
-2.  
-  a. Average fuel costs for each month/season using all 2016-2020 data: see the trend over the months/seasons as an indication of fuel costs fluctuations for each month/season.  
-  b. Average fuel costs for each month/season using 2016-2019 data vs 2020 data (COVID-19 comparison): comparison of trends over the months/seasons vs COVID-19 as an indication of the impact COVID-19 on fuel costs.  
-
-
-3. 
-  a. Understand how percipitation affects the average aircraft operating cost per hour (Cost on y-axis; precipitation level on x-axis).  
-  b. Understand how the average percipitation fluctuates on a monthly/seasonal level (Precipitation on y-axis and x-axis will months/seasons).  
-  c. Combine a and b to estimate average aircraft operating cost per hour due to pericipitation level  on a monthly/seasonal basis (Cost on y-axis and x-axis months/seasons).  
-
+1.
+    a. Yearly demand trend: aggregate the duration data yearly and observe the trend in the demand.
+    b. Average demand for each month/season using all 2016-2020 data: see the trend over the months/seasons as an indication of total costs for each month/season. 
+    c. Average demand for each month/season using 2016-2019 data vs 2020 data (COVID-19 comparison): comparison of trends over the months/seasons vs COVID-19 as an indication of the impact COVID-19 on total costs.
+2.
+    a. Average fuel costs for each month/season using all 2016-2020 data: see the trend over the months/seasons as an indication of fuel costs fluctuations for each month/season.
+    b. Average fuel costs for each month/season using 2016-2019 data vs 2020 data (COVID-19 comparison): comparison of trends over the months/seasons vs COVID-19 as an indication of the impact COVID-19 on fuel costs.
+3.
+    a. Understand how percipitation affects the average aircraft operating cost per hour (Cost on y-axis; precipitation level on x-axis).  
+    b. Understand how the average percipitation fluctuates on a monthly/seasonal level (Precipitation on y-axis and x-axis will months/seasons).
+    c. Combine a and b to estimate average aircraft operating cost per hour due to pericipitation level  on a monthly/seasonal basis (Cost on y-axis and x-axis months/seasons).
 4. combining calculations made in 2, 3 and an estimated satitic aircraft repair operating cost found online
-  a. the total average aircraft operating cost per hour considering fuel and weather fluctuations on a monthly/seasonal basis using all 2016-2020 data.  
-  b. the total average aircraft operating cost per hour considering fuel and weather fluctuations on a monthly/seasonal using 2016-2019 data vs 2020 data (COVID-19 comparison).
-  
-5. combining calculations made in 4 and 1  
-  a. the total aircraft operating costs calculated by obtaining the total average aircraft operating cost per hour from 4 multiplied by the total demand from 1 on a monthly basis, which can then be combined to form seasonal and yearly.  
-  b. in the same fashion as before, we are going to split the data to 2016-2019 and 2020 to see the overall impact on COVID-19 on the total aircraft operating costs on a monthly basis (seasonal and yearly as well). 
+    a. the total average aircraft operating cost per hour considering fuel and weather fluctuations on a monthly/seasonal basis using all 2016-2020 data.
+    b. the total average aircraft operating cost per hour considering fuel and weather fluctuations on a monthly/seasonal using 2016-2019 data vs 2020 data (COVID-19 comparison).
+5. combining calculations made in 4 and 1
+    a. the total aircraft operating costs calculated by obtaining the total average aircraft operating cost per hour from 4 multiplied by the total demand from 1 on a monthly basis, which can then be combined to form seasonal and yearly.
+    b. in the same fashion as before, we are going to split the data to 2016-2019 and 2020 to see the overall impact on COVID-19 on the total aircraft operating costs on a monthly basis (seasonal and yearly as well).
 
 ### Data
 
