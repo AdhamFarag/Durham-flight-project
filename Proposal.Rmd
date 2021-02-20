@@ -49,6 +49,11 @@ source(file = "preprocess_data.R")
 ```
 *Specify your data sources, and the type of information you will use (for external data, provide links/references). For each data source, describe the variables and observations used in your analysis. Identify any potential issues (e.g. bias).*  
 
+Within the internal data source (original clean data):  
+- Duration (measurement of demand)  
+- Session_ID/Training_Type (unique identifier for each duration within a session)  
+- Aircraft (breakdown of duration by type of aircraft)  
+- Year/Month/Day (breakdown of duration by season/month/year and used for time series of external factors) 
 
 We plan on using the following external data sources:
 
