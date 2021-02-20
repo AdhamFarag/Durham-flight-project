@@ -69,6 +69,7 @@ We plan on using the following external data sources:
     - A static value, since the models being used are very similar
 
 *Provide the R code that imports the data into R, and formats them appropriately (this can go to the appendix if it is too lengthy). Submit a copy of your external data files, if any. *
+See appendix.
 
 ### Preliminary Results
 
