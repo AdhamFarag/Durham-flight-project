@@ -79,14 +79,25 @@ clean_data_processed <- select(clean_data_processed, -c("Month_Year","Change","M
 colnames(clean_data_processed)[colnames(clean_data_processed) == 'Price'] <- 'Fuel Price Per Gallon'
 
 process_weather <- function(data) {
-  data %>% select('Date/Time', "Mean Temp (°C)", "Total Rain (mm)", "Total Snow (cm)")
+  data %>% 
+    select(
+      'Date/Time', 
+      "Mean Temp (°C)",
+      "Total Precip (mm)",
+      "Total Rain (mm)", 
+      "Total Snow (cm)", 
+      "Spd of Max Gust (km/h)"
+    ) %>% 
+    mutate(wind = as.character(`Spd of Max Gust (km/h)`)) %>%
+    select(-c("Spd of Max Gust (km/h)")) %>%
+    mutate(wind = ifelse(wind == '<31', 31, wind))
 }
 
 climate_data_2016 <- read_csv('data/en_climate_daily_ON_6158410_2016_P1D.csv') %>% process_weather()
 climate_data_2017 <- read_csv('data/en_climate_daily_ON_6158410_2017_P1D.csv') %>% process_weather()
 climate_data_2018 <- read_csv('data/en_climate_daily_ON_6158410_2018_P1D.csv') %>% process_weather()
 climate_data_2019 <- read_csv('data/en_climate_daily_ON_6158410_2019_P1D.csv') %>% process_weather()
-climate_data_2020 <- read_csv('data/en_climate_daily_ON_6158409_2020_P1D.csv') %>% process_weather()
+climate_data_2020 <- read_csv('data/en_climate_daily_ON_6158410_2020_P1D.csv') %>% process_weather()
 climate_data <- bind_rows(climate_data_2016, 
                           climate_data_2017, 
                           climate_data_2018, 
