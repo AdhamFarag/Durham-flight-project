@@ -88,9 +88,9 @@ process_weather <- function(data) {
       "Total Snow (cm)", 
       "Spd of Max Gust (km/h)"
     ) %>% 
-    mutate(wind = as.character(`Spd of Max Gust (km/h)`)) %>%
+    mutate(Wind = as.character(`Spd of Max Gust (km/h)`)) %>%
     select(-c("Spd of Max Gust (km/h)")) %>%
-    mutate(wind = ifelse(wind == '<31', 31, wind))
+    mutate(Wind = ifelse(Wind == '<31', 31, Wind))
 }
 
 climate_data_2016 <- read_csv('data/en_climate_daily_ON_6158410_2016_P1D.csv') %>% process_weather()
@@ -105,3 +105,27 @@ climate_data <- bind_rows(climate_data_2016,
                           climate_data_2020)
 
 clean_data_processed <- left_join(clean_data_processed, climate_data, by=c("Date" = "Date/Time"), copy=True)
+
+# ----- BEGIN NEW CODE -----
+clean_data_v2 <- clean_data %>% 
+  filter(Aircraft != "GROUND") %>%
+  # remove trailing comma
+  mutate(Exercises = str_replace(Exercises, ",$", "")) %>% 
+  # remove leading comma
+  mutate(Exercises = str_replace(Exercises, "^,", "")) %>%
+  # remove duplicate comma
+  mutate(Exercises = str_replace(Exercises, ",,", ",")) %>%
+  group_by(Session_ID, Exercises, Year, Month, Day, Aircraft) %>% 
+  # can have multiple training types, therefore get total duration per session
+  summarise(Total_Duration = sum(Duration, na.rm = T)) %>%
+  mutate(
+    Season = getSeason(Month), 
+    Date = make_date(Year, Month, Day),
+    Month_Words = month.abb[Month]
+  ) %>% 
+  mutate(Month_Year = (str_c(Month_Words, Year, sep = " "))) %>%
+  left_join(climate_data, by=c("Date" = "Date/Time")) %>%
+  left_join(fuel_prices, by="Month_Year") %>%
+  mutate(`Fuel Price Per Gallon` = Price) %>%
+  select(-c(Month_Year, Month_Words, Change, Price))
+# ----- END NEW CODE -----
