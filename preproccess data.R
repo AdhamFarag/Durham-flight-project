@@ -81,51 +81,22 @@ colnames(clean_data_processed)[colnames(clean_data_processed) == 'Price'] <- 'Fu
 process_weather <- function(data) {
   data %>% 
     select(
-      'Date/Time', 
-      "Mean Temp (°C)",
-      "Total Precip (mm)",
-      "Total Rain (mm)", 
-      "Total Snow (cm)", 
-      "Spd of Max Gust (km/h)"
-    ) %>% 
-    mutate(Wind = as.character(`Spd of Max Gust (km/h)`)) %>%
-    select(-c("Spd of Max Gust (km/h)")) %>%
-    mutate(Wind = ifelse(Wind == '<31', 31, Wind))
+      "date",
+      "min_windchill",
+      "avg_relative_humidity",
+      "avg_dew_point",
+      "avg_pressure_sea",
+      "avg_pressure_station",
+      "avg_visibility",
+      "avg_health_index",
+      "precipitation",
+      "avg_cloud_cover_4",
+      "avg_temperature"
+    ) %>%
+    filter(date <"2021-01-01")
 }
 
-climate_data_2016 <- read_csv('data/en_climate_daily_ON_6158410_2016_P1D.csv') %>% process_weather()
-climate_data_2017 <- read_csv('data/en_climate_daily_ON_6158410_2017_P1D.csv') %>% process_weather()
-climate_data_2018 <- read_csv('data/en_climate_daily_ON_6158410_2018_P1D.csv') %>% process_weather()
-climate_data_2019 <- read_csv('data/en_climate_daily_ON_6158410_2019_P1D.csv') %>% process_weather()
-climate_data_2020 <- read_csv('data/en_climate_daily_ON_6158410_2020_P1D.csv') %>% process_weather()
-climate_data <- bind_rows(climate_data_2016, 
-                          climate_data_2017, 
-                          climate_data_2018, 
-                          climate_data_2019, 
-                          climate_data_2020)
+climate_data <- read_csv('data/weatherstats_oshawa_daily.csv') %>% process_weather()
 
-clean_data_processed <- left_join(clean_data_processed, climate_data, by=c("Date" = "Date/Time"), copy=True)
 
-# ----- BEGIN NEW CODE -----
-clean_data_v2 <- clean_data %>% 
-  filter(Aircraft != "GROUND") %>%
-  # remove trailing comma
-  mutate(Exercises = str_replace(Exercises, ",$", "")) %>% 
-  # remove leading comma
-  mutate(Exercises = str_replace(Exercises, "^,", "")) %>%
-  # remove duplicate comma
-  mutate(Exercises = str_replace(Exercises, ",,", ",")) %>%
-  group_by(Session_ID, Exercises, Year, Month, Day, Aircraft) %>% 
-  # can have multiple training types, therefore get total duration per session
-  summarise(Total_Duration = sum(Duration, na.rm = T)) %>%
-  mutate(
-    Season = getSeason(Month), 
-    Date = make_date(Year, Month, Day),
-    Month_Words = month.abb[Month]
-  ) %>% 
-  mutate(Month_Year = (str_c(Month_Words, Year, sep = " "))) %>%
-  left_join(climate_data, by=c("Date" = "Date/Time")) %>%
-  left_join(fuel_prices, by="Month_Year") %>%
-  mutate(`Fuel Price Per Gallon` = Price) %>%
-  select(-c(Month_Year, Month_Words, Change, Price))
-# ----- END NEW CODE -----
+clean_data_processed <- left_join(clean_data_processed, climate_data, by=c("Date" = "date"), copy=True)
