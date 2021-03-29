@@ -99,7 +99,7 @@ process_weather <- function(data) {
 climate_data <- read_csv('data/weatherstats_oshawa_daily.csv') %>% process_weather()
 
 # ----- BEGIN NEW CODE -----
-exercises_model <- clean_data %>% 
+data_exercises <- clean_data %>% 
   filter(Aircraft != "GROUND") %>%
   # remove trailing comma
   mutate(Exercises = str_replace(Exercises, ",$", "")) %>% 
