@@ -98,5 +98,28 @@ process_weather <- function(data) {
 
 climate_data <- read_csv('data/weatherstats_oshawa_daily.csv') %>% process_weather()
 
+# ----- BEGIN NEW CODE -----
+exercises_model <- clean_data %>% 
+  filter(Aircraft != "GROUND") %>%
+  # remove trailing comma
+  mutate(Exercises = str_replace(Exercises, ",$", "")) %>% 
+  # remove leading comma
+  mutate(Exercises = str_replace(Exercises, "^,", "")) %>%
+  # remove duplicate comma
+  mutate(Exercises = str_replace(Exercises, ",,", ",")) %>%
+  group_by(Session_ID, Exercises, Year, Month, Day, Aircraft) %>% 
+  # can have multiple training types, therefore get total duration per session
+  summarise(Total_Duration = sum(Duration, na.rm = T)) %>%
+  mutate(
+    Season = getSeason(Month), 
+    Date = make_date(Year, Month, Day),
+    Month_Words = month.abb[Month]
+  ) %>% 
+  mutate(Month_Year = (str_c(Month_Words, Year, sep = " "))) %>%
+  left_join(climate_data, by=c("Date" = "date")) %>%
+  left_join(fuel_prices, by="Month_Year") %>%
+  mutate(`Fuel Price Per Gallon` = Price) %>%
+  select(-c(Month_Year, Month_Words, Change, Price))
+# ----- END NEW CODE -----
 
 clean_data_processed <- left_join(clean_data_processed, climate_data, by=c("Date" = "date"), copy=True)
