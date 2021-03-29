@@ -60,9 +60,8 @@ Within the internal data source (original clean data):
 
 We plan on using the following external data sources:
 
-1. Weather (https://climate.weather.gc.ca/historical_data/search_historic_data_e.html)
+1. Weather (https://oshawa.weatherstats.ca/download.html)
     - Historical weather data by day, including temp, precipitation, wind, etc.
-    - No data for oshawa. We are assuming that data from another Toronto location (TORONTO BUTTONVILLE A) is accurate enough.
 2. Fuel (https://www.indexmundi.com/commodities/?commodity=jet-fuel&months=240&currency=cad)
     - Historical fuel data by month, including the cost/gallon and %change
     - Assuming that all planes used in the flight school use the same fuel
