@@ -81,27 +81,22 @@ colnames(clean_data_processed)[colnames(clean_data_processed) == 'Price'] <- 'Fu
 process_weather <- function(data) {
   data %>% 
     select(
-      'Date/Time', 
-      "Mean Temp (°C)",
-      "Total Precip (mm)",
-      "Total Rain (mm)", 
-      "Total Snow (cm)", 
-      "Spd of Max Gust (km/h)"
-    ) %>% 
-    mutate(wind = as.character(`Spd of Max Gust (km/h)`)) %>%
-    select(-c("Spd of Max Gust (km/h)")) %>%
-    mutate(wind = ifelse(wind == '<31', 31, wind))
+      "date",
+      "min_windchill",
+      "avg_relative_humidity",
+      "avg_dew_point",
+      "avg_pressure_sea",
+      "avg_pressure_station",
+      "avg_visibility",
+      "avg_health_index",
+      "precipitation",
+      "avg_cloud_cover_4",
+      "avg_temperature"
+    ) %>%
+    filter(date <"2021-01-01")
 }
 
-climate_data_2016 <- read_csv('data/en_climate_daily_ON_6158410_2016_P1D.csv') %>% process_weather()
-climate_data_2017 <- read_csv('data/en_climate_daily_ON_6158410_2017_P1D.csv') %>% process_weather()
-climate_data_2018 <- read_csv('data/en_climate_daily_ON_6158410_2018_P1D.csv') %>% process_weather()
-climate_data_2019 <- read_csv('data/en_climate_daily_ON_6158410_2019_P1D.csv') %>% process_weather()
-climate_data_2020 <- read_csv('data/en_climate_daily_ON_6158410_2020_P1D.csv') %>% process_weather()
-climate_data <- bind_rows(climate_data_2016, 
-                          climate_data_2017, 
-                          climate_data_2018, 
-                          climate_data_2019, 
-                          climate_data_2020)
+climate_data <- read_csv('data/weatherstats_oshawa_daily.csv') %>% process_weather()
 
-clean_data_processed <- left_join(clean_data_processed, climate_data, by=c("Date" = "Date/Time"), copy=True)
+
+clean_data_processed <- left_join(clean_data_processed, climate_data, by=c("Date" = "date"), copy=True)
