@@ -6,84 +6,6 @@ output:
   html_document: default
 ---
 
-```{r}
-library(broom)
-```
-
-```{r}
-data_exercises %>% 
-  group_by(Exercises) %>%
-  summarise(count=n()) %>%
-  arrange(desc(count)) %>%
-  slice(1:3)
-
-data_exercises_top_1 <- data_exercises %>%
-  filter(Exercises == '16,17,18,30')
-
-data_exercises_top_2 <- data_exercises %>%
-  filter(Exercises == '16,17,18')
-
-data_exercises_top_3 <- data_exercises %>%
-  filter(Exercises == '16,17,18,23,30')
-```
-
-```{r}
-top_1_exercise_lm_out = lm(Total_Duration ~ 
-                        avg_relative_humidity +
-                        avg_dew_point +
-                        avg_pressure_sea +
-                        avg_pressure_station +
-                        avg_visibility +
-                        avg_health_index +
-                        avg_cloud_cover_4 + 
-                        avg_temperature + 
-                        min_windchill +
-                        precipitation + Aircraft - 1, 
-                      data = data_exercises_top_1)
-top_1_exercise_lm_out %>%
-  tidy() %>%
-  arrange(p.value) %>%
-  select(term, p.value, estimate)
-```
-
-```{r}
-top_2_exercise_lm_out = lm(Total_Duration ~ 
-                        avg_relative_humidity +
-                        avg_dew_point +
-                        avg_pressure_sea +
-                        avg_pressure_station +
-                        avg_visibility +
-                        avg_health_index +
-                        avg_cloud_cover_4 + 
-                        avg_temperature + 
-                        min_windchill +
-                        precipitation + Aircraft - 1, 
-                      data = data_exercises_top_2)
-top_2_exercise_lm_out %>%
-  tidy() %>%
-  arrange(p.value) %>%
-  select(term, p.value, estimate)
-```
-
-```{r}
-top_3_exercise_lm_out = lm(Total_Duration ~ 
-                        avg_relative_humidity +
-                        avg_dew_point +
-                        avg_pressure_sea +
-                        avg_pressure_station +
-                        avg_visibility +
-                        avg_health_index +
-                        avg_cloud_cover_4 + 
-                        avg_temperature + 
-                        min_windchill +
-                        precipitation + Aircraft - 1, 
-                      data = data_exercises_top_3)
-top_3_exercise_lm_out %>%
-  tidy() %>%
-  arrange(p.value) %>%
-  select(term, p.value, estimate)
-```
-
 https://rstudio.cloud/spaces/115177/project/2202992
 
 ### Analysis Plan 
@@ -128,6 +50,8 @@ Data analysis plan per question:
 ```{r , results='hide', include=FALSE, warning=FALSE}
 source(file = "preprocess_data.R")
 ```
+
+
 *Specify your data sources, and the type of information you will use (for external data, provide links/references). For each data source, describe the variables and observations used in your analysis. Identify any potential issues (e.g. bias).*  
 
 Within the internal data source (original clean data):  
@@ -371,6 +295,7 @@ climate_data <- bind_rows(climate_data_2016,
 clean_data_processed <- left_join(clean_data_processed, climate_data, by=c("Date" = "Date/Time"), copy=True)
 
 ```
+
 # Demand per aircraft
 Below is an attempt to see if an interesting analysis can be made from examing the demand per aircraft and hence the aircraft operating costs per airctaft.
 
@@ -443,4 +368,112 @@ aircraft_demand_seasonal <- clean_data_processed %>%
 ggarrange(aircraft_demand_seasonal, aircraft_demand_monthly)
 ```
 
+\newpage
+
+```{r}
+View(clean_data_processed)
+```
+
+
+# NEW MODELS
+
+
+## Cost model
+```{r}
+clean_data_processed = clean_data_processed %>% filter(Year %in% c(2019, 2020))
+
+clean_data_processed %>% 
+  distinct(Session_ID, .keep_all = T) %>%
+  mutate(`Cost Per Hour Per Session`=(Duration*`Fuel Price Per Gallon`*6 + 10) / Duration) %>%
+  group_by(Date) %>%
+  mutate(`Average Cost Per Hour`= mean(`Cost Per Hour Per Session`)) %>%
+  arrange(Date) -> daily_average_cost_per_hour
+
+daily_average_cost_per_hour
+
+#fit = lm(`Average Cost Per Hour` ~ `Mean Temp (°C)`, data=daily_average_cost_per_hour)
+#summary(fit)
+```
+
+
+## Duration model
+
+
+```{r}
+library(broom)
+```
+
+```{r}
+data_exercises %>% 
+  group_by(Exercises) %>%
+  summarise(count=n()) %>%
+  arrange(desc(count)) %>%
+  slice(1:3)
+
+data_exercises_top_1 <- data_exercises %>%
+  filter(Exercises == '16,17,18,30')
+
+data_exercises_top_2 <- data_exercises %>%
+  filter(Exercises == '16,17,18')
+
+data_exercises_top_3 <- data_exercises %>%
+  filter(Exercises == '16,17,18,23,30')
+```
+
+```{r}
+top_1_exercise_lm_out = lm(Total_Duration ~ 
+                        avg_relative_humidity +
+                        avg_dew_point +
+                        avg_pressure_sea +
+                        avg_pressure_station +
+                        avg_visibility +
+                        avg_health_index +
+                        avg_cloud_cover_4 + 
+                        avg_temperature + 
+                        min_windchill +
+                        precipitation + Aircraft - 1, 
+                      data = data_exercises_top_1)
+top_1_exercise_lm_out %>%
+  tidy() %>%
+  arrange(p.value) %>%
+  select(term, p.value, estimate)
+```
+
+```{r}
+top_2_exercise_lm_out = lm(Total_Duration ~ 
+                        avg_relative_humidity +
+                        avg_dew_point +
+                        avg_pressure_sea +
+                        avg_pressure_station +
+                        avg_visibility +
+                        avg_health_index +
+                        avg_cloud_cover_4 + 
+                        avg_temperature + 
+                        min_windchill +
+                        precipitation + Aircraft - 1, 
+                      data = data_exercises_top_2)
+top_2_exercise_lm_out %>%
+  tidy() %>%
+  arrange(p.value) %>%
+  select(term, p.value, estimate)
+```
+
+```{r}
+top_3_exercise_lm_out = lm(Total_Duration ~ 
+                        avg_relative_humidity +
+                        avg_dew_point +
+                        avg_pressure_sea +
+                        avg_pressure_station +
+                        avg_visibility +
+                        avg_health_index +
+                        avg_cloud_cover_4 + 
+                        avg_temperature + 
+                        min_windchill +
+                        precipitation + Aircraft - 1, 
+                      data = data_exercises_top_3)
+top_3_exercise_lm_out %>%
+  tidy() %>%
+  arrange(p.value) %>%
+  select(term, p.value, estimate)
+```
 
