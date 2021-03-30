@@ -71,6 +71,14 @@ tbls <- html_nodes(webpage, "table") %>%
   html_table(fill = TRUE)
 fuel_prices <- as.data.frame(tbls[2])
 colnames(fuel_prices) <- c("Month_Year", "Price","Change")
+
+cleaned_fuel_prices <- fuel_prices %>%
+  separate(Month_Year, c("Month", "Year"), " ") %>%
+  filter(Year >= 2016, Year <= 2020) %>%
+  mutate(Month = factor(Month, level=month.abb)) %>%
+  mutate(Season = getSeason(match(Month, month.abb))) %>%
+  mutate(Season = factor(Season, level=c("Spring", "Summer", "Fall", "Winter")))
+
 clean_data_processed$Month_Words <- month.abb[clean_data_processed$Month]
 clean_data_processed$Month_Year <- (str_c(clean_data_processed$Month_Words, clean_data_processed$Year, sep = " "))
 
