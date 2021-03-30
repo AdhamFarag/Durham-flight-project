@@ -4,10 +4,6 @@ fontsize: 11pt
 geometry: margin=1in
 ---
 
-```{r , results='hide', include=FALSE, warning=FALSE}
-source(file = "preprocess_data.R")
-```
-
 ```{r, include = FALSE }
 knitr::opts_chunk$set( echo=FALSE, # hide code from document
                        warning=FALSE, # hide warnings 
@@ -56,7 +52,7 @@ For external data sources that we used in this project decided to gather from th
       - The annual operating cost of a cessna plane model.
       - We made an assumption that there is a 10 dollar static cost added to each training session when a plane is used which we got from the source website
 	
-	- Weather (https://climate.weather.gc.ca/historical_data/search_historic_data_e.html):
+  - Weather (https://climate.weather.gc.ca/historical_data/search_historic_data_e.html):
 		- Historical weather data by day, including temp, precipitation, wind, etc.
 		- Gathered data from Oshawa location
 
@@ -68,42 +64,6 @@ For external data sources that we used in this project decided to gather from th
 
 (*Main body of analysis, containing data summaries, visualizations, hypothesis tests, or modeling*)
 
-```{r}
-fuel_by_month <- cleaned_fuel_prices %>%
-  group_by(Month) %>%
-  summarise(Avg_Price_Per_Gallon = mean(Price)) %>%
-  ggplot(aes(x=Month, y=Avg_Price_Per_Gallon)) +
-  geom_bar(stat="identity", fill="darkblue") +
-  coord_cartesian(ylim=c(1.9, 2.2)) + 
-  ylab("Avg Price Per Gallon") +
-  labs(title="Fuel Price By Month ('16-'20)")
-
-fuel_by_season <- cleaned_fuel_prices %>%
-  group_by(Season) %>%
-  summarise(Avg_Price_Per_Gallon = mean(Price)) %>%
-  ggplot(aes(x=Season, y=Avg_Price_Per_Gallon)) +
-  geom_bar(stat="identity", fill="darkblue") +
-  coord_cartesian(ylim=c(1.9, 2.2)) + 
-  ylab("Avg Price Per Gallon") +
-  labs(title="Fuel Price By Season ('16-'20)")
-
-ggarrange(fuel_by_month, fuel_by_season)
-```
-From the monthly data on the left, we can see that in March and April the fuel price is significantly cheaper than any other month at a price around \$1.91/gallon. Following that, it steadily increases and peaks around \$2.15/gallon around October and December.
-
-For the seasonal data on the right, we can see that spring is significantly cheaper than any other season with a price at around \$1.94/gallon. On the other hand, fuel price is most expensive in the fall season with a price of about \$2.13/gallon
-
-```{r, echo = FALSE, warning=FALSE, message=FALSE, fig.height=2}
-clean_data_processed %>%
-  distinct(Year, Month, Day, .keep_all = T) %>%
-  mutate_if(is.numeric, replace_na, 0) %>%
-  ggplot(aes(x=Date, y=`Fuel Price Per Gallon`)) + 
-  geom_line(position="dodge", stat="identity", color="darkblue") +
-  xlab('Time') + ylab('Fuel Price Per Gallon') +
-  scale_x_date(breaks = 'year') +
-  labs(title='Fuel Price Per Gallon Time Series')
-```
-From the above graph, it can be seen there was a significant decrease in the jet fuel price per gallon, leading to lower aircraft operating costs. Therefore, we expect that the average and total estimated aircraft costs to be lower in 2020.
 
 ### Some Sub-Section Title
 
