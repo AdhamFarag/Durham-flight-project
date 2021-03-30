@@ -23,11 +23,40 @@ Link to RStudio Cloud shared project: https://rstudio.cloud/
 
 (*Description of questions that are being investigated*)
 
+1. What are the trends in jet fuel costs over different time units (months/season)?
+  - For this question we use the web scrapped to see how fuel price changes during time and we try to see how these changes affect the cost of flight or session for the company
 
+2. What factors affect cost in a significant matter (model 1)
+  - we decide here to use a linear regression model to assess significant facotrs to how cost is affected
+  
+3. What factors affect the duration of the same sets of exercises (model 2)
+  - we decide here to use a linear regression model to assess significant facotrs to how duration of session is affected
 
+4. What are the trends in demand over different time units (months/season/year)? 
+ - we find how the demand in flight training changes and was season is more significant 
+
+5. Considering the previous questions, what are the estimated average aircraft operating over different time units (months/season)?  
+
+6. What are the total aircraft operating costs over month/season/year?  
+  - assuming we know total number of planes
 ### Data 
 
 (*Description of data used to answer the questions*)
+For external data sources that we used in this project decided to gather from the following sources:
+
+  - Fuel data: (https://www.indexmundi.com/commodities/?commodity=jet-fuel&months=240&currency=cad)
+      - Historical fuel data by month, including the cost/gallon and %change
+      - Assuming that all planes used in the flight school use the same fuel
+  
+  - Operating costs and repairs (https://cessna150152club.org/Costs):
+      - The annual operating cost of a cessna plane model.
+      - We made an assumption that there is a 10 dollar static cost added to each training session when a plane is used which we got from the source website
+	
+	- Weather (https://climate.weather.gc.ca/historical_data/search_historic_data_e.html):
+		- Historical weather data by day, including temp, precipitation, wind, etc.
+		- Gathered data from Oshawa location
+
+
 
 
 ## Analysis 
