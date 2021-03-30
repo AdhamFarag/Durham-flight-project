@@ -26,34 +26,106 @@ Link to RStudio Cloud shared project: https://rstudio.cloud/
 
 
 ### Data 
-
+```{r , results='hide', include=FALSE, warning=FALSE}
+source(file = "preprocess_data.R")
+```
 (*Description of data used to answer the questions*)
 
 
 ## Analysis 
 
+### Question 3: What factors affect the duration of the same sets of exercises?
+In order answer this, we first identified a set of weather factors that we believed
+could have a strong effect on the duration of a session. These were:
 
-(*Main body of analysis, containing data summaries, visualizations, hypothesis tests, or modeling*)
+* avg_relative_humidity
+* avg_dew_point
+* avg_pressure_sea
+* avg_pressure_station
+* avg_visibility
+* avg_health_index
+* precipitation
+* avg_cloud_cover_4
+* avg_temperature
 
+Next, since we believed it was possible that the set of exercises chosen could directly affect the duration, we set it as a constant.
+This was done by taking the top 3 most common exercises, and creating a model for each of them.
+```{r}
+library(broom)
+data_exercises %>% 
+  group_by(Exercises) %>%
+  summarise(count=n()) %>%
+  arrange(desc(count)) %>%
+  slice(1:3) %>% 
+  knitr::kable( caption = "Top 3 Freq. Exercises")
 
-### Some Sub-Section Title
+data_exercises_top_1 <- data_exercises %>%
+  filter(Exercises == '16,17,18,30')
 
+data_exercises_top_2 <- data_exercises %>%
+  filter(Exercises == '16,17,18')
 
-(*Graphs should be created in R, not imported from file*)
-
-
-```{r,  fig.width = 4, fig.height = 4, fig.cap= "Graph Caption" } 
-tibble( t = seq(0, 2*pi, by=0.1) ) %>% 
-  mutate( x = 16*sin(t)^3, 
-          y = 13*cos(t)-5*cos(2*t)-2*cos(3*t)-cos(4*t) ) %>% 
-  ggplot( aes( x = x, y = y) ) + 
-  geom_polygon( fill = "pink" ) +
-  # annotate axes 
-  xlab( "abscissa" ) + 
-  ylab( "ordinate" ) + 
-  ggtitle( "Graph Title (optional)"  ) +
-  coord_fixed() 
+data_exercises_top_3 <- data_exercises %>%
+  filter(Exercises == '16,17,18,23,30')
 ```
+
+Here are the p-values for the factors from each of the 3 models:
+```{r}
+top_1_exercise_lm_out = lm(Total_Duration ~ 
+                        avg_relative_humidity +
+                        avg_dew_point +
+                        avg_pressure_sea +
+                        avg_pressure_station +
+                        avg_visibility +
+                        avg_health_index +
+                        avg_cloud_cover_4 + 
+                        avg_temperature + 
+                        min_windchill +
+                        precipitation + Aircraft - 1, 
+                      data = data_exercises_top_1)
+top_1_exercise_lm_out %>%
+  tidy() %>%
+  arrange(p.value) %>%
+  select(term, p.value, estimate) %>% 
+  knitr::kable( caption = "P values for '16,17,18,30'")
+
+top_2_exercise_lm_out = lm(Total_Duration ~ 
+                        avg_relative_humidity +
+                        avg_dew_point +
+                        avg_pressure_sea +
+                        avg_pressure_station +
+                        avg_visibility +
+                        avg_health_index +
+                        avg_cloud_cover_4 + 
+                        avg_temperature + 
+                        precipitation + Aircraft - 1, 
+                      data = data_exercises_top_2)
+top_2_exercise_lm_out %>%
+  tidy() %>%
+  arrange(p.value) %>%
+  select(term, p.value, estimate) %>% 
+  knitr::kable( caption = "P values for '16,17,18'")
+
+top_3_exercise_lm_out = lm(Total_Duration ~ 
+                        avg_relative_humidity +
+                        avg_dew_point +
+                        avg_pressure_sea +
+                        avg_pressure_station +
+                        avg_visibility +
+                        avg_health_index +
+                        avg_cloud_cover_4 + 
+                        avg_temperature + 
+                        precipitation + Aircraft - 1, 
+                      data = data_exercises_top_3)
+top_3_exercise_lm_out %>%
+  tidy() %>%
+  arrange(p.value) %>%
+  select(term, p.value, estimate) %>% 
+  knitr::kable( caption = "P values for '16,17,18,23,30'")
+```
+From these results we could not identify any common features between the three models.
+Additionally, for all models, all factors have a p-value > 0.05 and thus individually are not statistically significant.
+We can conclude that 
 
 ### Some Sub-section Title     
 
