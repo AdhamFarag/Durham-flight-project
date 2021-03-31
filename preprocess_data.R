@@ -101,7 +101,7 @@ process_weather <- function(data) {
       "avg_cloud_cover_4",
       "avg_temperature"
     ) %>%
-    filter(date <"2021-01-01")
+    filter(date <"2021-01-01", date >= "2016-01-01")
 }
 
 climate_data <- read_csv('data/weatherstats_oshawa_daily.csv') %>% process_weather()
@@ -118,6 +118,7 @@ data_exercises <- clean_data %>%
   group_by(Session_ID, Exercises, Year, Month, Day, Aircraft) %>% 
   # can have multiple training types, therefore get total duration per session
   summarise(Total_Duration = sum(Duration, na.rm = T)) %>%
+  ungroup() %>%
   mutate(
     Season = getSeason(Month), 
     Date = make_date(Year, Month, Day),
