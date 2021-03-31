@@ -13,7 +13,7 @@ library(tidyverse)
 
 # STAA57 W21 Draft Report 
 
-Group ? (member names)    
+Group 4 (Adham F, Jason Y, Mohamed T, Wesley M)
 
 Link to RStudio Cloud shared project: https://rstudio.cloud/
 
@@ -353,6 +353,3 @@ climate_data <- bind_rows(climate_data_2016,
 clean_data_processed <- left_join(clean_data_processed, climate_data, by=c("Date" = "Date/Time"), copy=True)
 
 ```
-
-
-
