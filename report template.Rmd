@@ -144,15 +144,11 @@ data_exercises_top_1 <- data_exercises %>%
   filter(Exercises == '16,17,18,30')
 ```
 
+Regression model for all the weather data:
 ```{r}
-head(data_exercises_top_1)
-```
-
-Here are the p-values for the factors from each of the 3 models:
-```{r}
+duration.data = select(data_exercises_top_1, -min_windchill)
 # add covid to the dataset
-top_1_exercise_lm_out = lm(Total_Duration ~ 
-                        min_windchill +
+duration.fit.1 = lm(Total_Duration ~ 
                         avg_relative_humidity +
                         avg_dew_point +
                         avg_pressure_sea +
@@ -161,40 +157,41 @@ top_1_exercise_lm_out = lm(Total_Duration ~
                         avg_health_index +
                         avg_cloud_cover_4 + 
                         avg_temperature + 
-                        precipitation + COVID + Season - 1, 
-                      data = data_exercises_top_1)
-top_1_exercise_lm_out %>%
-  tidy() %>%
-  arrange(p.value) %>%
-  select(term, p.value, estimate) %>% 
-  knitr::kable( caption = "P values for '16,17,18,30'")
-
-summary(top_1_exercise_lm_out)
-plot(top_1_exercise_lm_out$residuals, top_1_exercise_lm_out$fitted.values)
+                        precipitation + Season - 1, 
+                      data = duration.data)
+summary(duration.fit.1)
 
 ```
 
-### Correlation matrix for the weather variables
+## Analysis for Duration per Session linear regression model
+
+It can be seen from the summary function that the p-values for all the covariates are high, despite having a high R-squared of 0.89. Having a high R-squared is good for a model since most of the variation in the response variable can be explained through the model. However coupled with high p-values for all covariates renders the model useless as it implies that none of the covariates have a satistical significance in association with the total duration. Intuitively since we are multiple covariates from weather data, it was thought that multiple collinearity might be the cause of the high p-values. Hence, a correlation matrix for the weather data was calculated.
+
+### Correlation matrix for the weather covariates
 ```{r}
-no.na.data = na.omit(data_exercises_top_1)
-top_1_exercise_lm_out = lm(Total_Duration ~ 
+na.omit(climate_data) %>% select(-c("date","min_windchill")) %>% cor()
+```
+
+From the correlation matrix, it can be seen that avg_pressure_sea and avg_pressure_station have a correlation of almost 1. avg_pressure_station was chosen to be removed as avg_pressure_sea measures are standardly used during aircraft take offs. Also, avg_dew_point and avg_temperature have a correlation of 0.9. From background research, it was found that dew_point is used as an indication of humidity and visibility, thus it was chosen to be removed from model since humidity and visibility are both given. A new linear regression model was fit disregarding these two covariates.
+
+```{r}
+# add covid to the dataset
+duration.fit.2 = lm(Total_Duration ~ 
                         avg_relative_humidity +
-                        avg_dew_point +
                         avg_pressure_sea +
                         avg_visibility +
                         avg_health_index +
                         avg_cloud_cover_4 + 
                         avg_temperature + 
                         precipitation + Season - 1, 
-                      data = no.na.data)
-step(top_1_exercise_lm_out,direction="backward")
-#plot(top_1_exercise_lm_out$residuals, top_1_exercise_lm_out$fitted.values)
-summary(top_1_exercise_lm_out)
-#na.omit(climate_data) %>% select(-date) %>% cor()
-
-# removing windchill, avg_pressure_sea
-# possible: avg_dew_point
+                      data = duration.data)
+summary(duration.fit.2)
+plot(duration.fit.2$residuals, duration.fit.2$fitted.values)
 ```
+
+Unfortunately, despite attempting to remove variables with high correlation, the model still performed poorly with high p-values. A further look into the residual plot gave a clear indication that the linear regression model assumption of having a constant variation among residuals was being violated, giving a further indication that a linear model is not a good fit for the data. To remidy this a boxcox 
+
+
 
 ### Plan:
 1. try to fit and analyze R squared and pvalues
@@ -203,6 +200,15 @@ summary(top_1_exercise_lm_out)
 4. model was still performing poorly
 5. decided to take a power of the y and log of y to see if it will change the model, but it was the same
 6. since we didnt find any significant factors that can be used, we will create a cost model with all covariates
+
+
+```{r}
+plot(top_1_exercise_lm_out$residuals, top_1_exercise_lm_out$fitted.values)
+```
+
+
+
+
 
 
 From these results we could not identify any common features between the three models.
