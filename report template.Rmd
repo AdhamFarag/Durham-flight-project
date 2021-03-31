@@ -102,6 +102,24 @@ clean_data_processed %>%
 From the above graph, it can be seen there was a significant decrease in the jet fuel price per gallon, leading to lower aircraft operating costs. Therefore, we expect that the average and total estimated aircraft costs to be lower in 2020.
 
 ### Question 3: What factors affect the duration of the same sets of exercises?
+
+### How was the data prepared?
+For sessions that perform a particular exercise set, we suspect that their total duration should be around the average total duration for that same exercise set, unless there are external factors that affect it. Thus we can utilize a multiple linear regression model to show any significance for external factors against duration.
+
+To prepare the data for our model, we first have to group the data by exercise set. Noting that there are a lot of unique exercise combinations we took the three most popular exercise routines as we deemed that to have enough data for this analysis. Within each data set, we would create a model on it and measure the results individually.
+
+We also noted that we have to compute the total duration for a single session since a single session might have multiple training types resulting in multiple rows. Therefore we aggregated the rows to get the total duration for a particular session. To do this we can simply grouped by `Session_ID`, `Exercises`, `Year`, `Month`, `Day`, and `Aircraft` as these variables are always the same regardless of the training type.
+
+As a minor note, we also removed sessions that occurred on the ground as we wanted our model to only measure duration with real planes against external factors.
+
+Lastly, to add on the external factors we joined our weather data to the processed data set.
+
+After the data was prepared, we had to filter it down such that we only analyze sessions where the exercises that get performed come from one of the top 3 most popular sets. For this we counted the number of sessions for each set of exercises and grabbed the three most frequent ones.
+
+Knowing which were the top three, we split up the data into 3 sets by the exercise groups.
+
+---
+
 In order answer this, we first identified a set of weather factors that we believed
 could have a strong effect on the duration of a session. These were:
 
