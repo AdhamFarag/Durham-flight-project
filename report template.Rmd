@@ -26,11 +26,11 @@ Link to RStudio Cloud shared project: https://rstudio.cloud/
 1. What are the trends in jet fuel costs over different time units (months/season)?
   - For this question we use the web scrapped to see how fuel price changes during time and we try to see how these changes affect the cost of flight or session for the company
 
-2. What factors affect cost in a significant matter (model 1)
-  - we decide here to use a linear regression model to assess significant facotrs to how cost is affected
-  
-3. What factors affect the duration of the same sets of exercises (model 2)
+2. What factors affect the duration of the sessions (model 1)
   - we decide here to use a linear regression model to assess significant facotrs to how duration of session is affected
+
+3. What factors affect cost in a significant matter (model 2)
+  - we decide here to use a linear regression model to assess significant facotrs to how cost is affected
 
 4. What are the trends in demand over different time units (months/season/year)? 
  - we find how the demand in flight training changes and was season is more significant 
@@ -100,24 +100,19 @@ clean_data_processed %>%
 ```
 From the above graph, it can be seen there was a significant decrease in the jet fuel price per gallon, leading to lower aircraft operating costs. Therefore, we expect that the average and total estimated aircraft costs to be lower in 2020.
 
-### Question 3: What factors affect the duration of the same sets of exercises?
+### Question 3: What factors affect the duration of sessions?
 
 ### How was the data prepared?
 For sessions that perform a particular exercise set, we suspect that their total duration should be around the average total duration for that same exercise set, unless there are external factors that affect it. Thus we can utilize a multiple linear regression model to show any significance for external factors against duration.
 
-To prepare the data for our model, we first have to group the data by exercise set. Noting that there are a lot of unique exercise combinations we took the three most popular exercise routines and split them into individual data sets as we deemed that to have enough data for this analysis. Within each data set, we would create a model on it and measure the results individually.
+To prepare the data for our model, we first have to group the data by exercise set. Noting that there are a lot of unique exercise combinations as we deemed that to have enough data for this analysis. 
 
 We also noted that we have to compute the total duration for a single session since a single session might have multiple training types resulting in multiple rows. Therefore we aggregated the rows to get the total duration for a particular session. To do this we can simply grouped by `Session_ID` and added the duration.
 
 As a minor note, we also removed sessions that occurred on the ground as we wanted our model to only measure duration with real planes against external factors.
 
-Lastly, to add on the external factors we joined our weather data to the processed data set.
-
-After the data was prepared, we kept only the rows that came from the top 3 most frequent exercise sets and split them as mentioned above.
-
----
-
-Since the cost per session is directly affected by the session's duration, it was decided to investigate which weather factors impact a session's duration. To answer this, we first identified a set of weather factors that we believed could have a strong effect on the duration of a session. These were:
+Lastly, to add on the external factors we joined our weather data to the processed data set. 
+We identified an initial  set of weather factors that we believed could have a strong effect on the duration of a session. These were:
 
 * avg_relative_humidity
 * avg_dew_point
@@ -129,8 +124,9 @@ Since the cost per session is directly affected by the session's duration, it wa
 * avg_cloud_cover_4
 * avg_temperature
 
-Next, since we believed it was possible that the set of exercises chosen could directly affect the duration, thus we set them as a constant.
-This was done by taking the top 3 most common groups of exercises, and creating a linear regression model for each of them.
+---
+
+Selecting the most popular exercise routine
 ```{r}
 library(broom)
 data_exercises %>% 
@@ -144,7 +140,7 @@ data_exercises_top_1 <- data_exercises %>%
   filter(Exercises == '16,17,18,30')
 ```
 
-Regression model for all the weather data:
+Linear regression model for Duration per Session:
 ```{r}
 duration.data = select(data_exercises_top_1, -min_windchill)
 # add covid to the dataset
