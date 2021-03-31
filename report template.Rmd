@@ -39,27 +39,26 @@ Link to RStudio Cloud shared project: https://rstudio.cloud/
 
 6. What are the total aircraft operating costs over month/season/year?  
   - assuming we know total number of planes
+
 ### Data 
 ```{r , results='hide', include=FALSE, warning=FALSE}
 source(file = "preprocess_data.R")
 ```
-(*Description of data used to answer the questions*)
-For external data sources that we used in this project decided to gather from the following sources:
 
-  - Fuel data: (https://www.indexmundi.com/commodities/?commodity=jet-fuel&months=240&currency=cad)
-      - Historical fuel data by month, including the cost/gallon and %change
-      - Assuming that all planes used in the flight school use the same fuel
+The external data that is used in this project were gathered from the following sources:
   
-  - Operating costs and repairs (https://cessna150152club.org/Costs):
-      - The annual operating cost of a cessna plane model.
-      - We made an assumption that there is a 10 dollar static cost added to each training session when a plane is used which we got from the source website
+  - AVGAS: (NEW LINK)
+      - From preliminary research, it was found that C-172, C-150 and C-152 aircraft models only consume jet fuel (https://airshare.com/blog/cessna-172/#:~:text=and%20accessible%20training.-,What%20type%20of%20fuel%20does%20it%20use%3F,to%20power%20it%27s%20piston%20engine)
+      - The AVGAS historical data from BLANK is given by month, including the cost per gallon and percentage change
+
+  - Maintenance costs and repairs (https://cessna150152club.org/Costs):
+      - The annual operating cost of a cessna plane model for maintenance and repairs
+      - Based on this research,an assumed 15 dollar static cost per hour was added to each training session cost
+      - In addition, the fuel consumption per hour is estimated to be 6
 	
   - Weather (https://climate.weather.gc.ca/historical_data/search_historic_data_e.html):
-		- Historical weather data by day, including temp, precipitation, wind, etc.
-		- Gathered data from Oshawa location
-
-
-
+		  - Historical weather data by day, including temp, precipitation, wind, etc.
+		  - Gathered data from Oshawa location
 
 ## Analysis 
 
@@ -120,8 +119,7 @@ Knowing which were the top three, we split up the data into 3 sets by the exerci
 
 ---
 
-In order answer this, we first identified a set of weather factors that we believed
-could have a strong effect on the duration of a session. These were:
+Since the cost per session is directly affected by the session's duration, it was decided to investigate which weather factors impact a session's duration. To answer this, we first identified a set of weather factors that we believed could have a strong effect on the duration of a session. These were:
 
 * avg_relative_humidity
 * avg_dew_point
@@ -133,8 +131,8 @@ could have a strong effect on the duration of a session. These were:
 * avg_cloud_cover_4
 * avg_temperature
 
-Next, since we believed it was possible that the set of exercises chosen could directly affect the duration, we set it as a constant.
-This was done by taking the top 3 most common exercises, and creating a model for each of them.
+Next, since we believed it was possible that the set of exercises chosen could directly affect the duration, thus we set them as a constant.
+This was done by taking the top 3 most common groups of exercises, and creating a linear regression model for each of them.
 ```{r}
 library(broom)
 data_exercises %>% 
@@ -168,11 +166,15 @@ top_1_exercise_lm_out = lm(Total_Duration ~
                         min_windchill +
                         precipitation + Aircraft - 1, 
                       data = data_exercises_top_1)
+#summary(top_1_exercise_lm_out)
+
 top_1_exercise_lm_out %>%
   tidy() %>%
   arrange(p.value) %>%
   select(term, p.value, estimate) %>% 
   knitr::kable( caption = "P values for '16,17,18,30'")
+plot(top_1_exercise_lm_out$residuals, top_1_exercise_lm_out$fitted.values)
+
 
 top_2_exercise_lm_out = lm(Total_Duration ~ 
                         avg_relative_humidity +
@@ -185,11 +187,13 @@ top_2_exercise_lm_out = lm(Total_Duration ~
                         avg_temperature + 
                         precipitation + Aircraft - 1, 
                       data = data_exercises_top_2)
+#summary(top_2_exercise_lm_out)
 top_2_exercise_lm_out %>%
   tidy() %>%
   arrange(p.value) %>%
   select(term, p.value, estimate) %>% 
   knitr::kable( caption = "P values for '16,17,18'")
+plot(top_2_exercise_lm_out$residuals, top_2_exercise_lm_out$fitted.values)
 
 top_3_exercise_lm_out = lm(Total_Duration ~ 
                         avg_relative_humidity +
@@ -202,12 +206,19 @@ top_3_exercise_lm_out = lm(Total_Duration ~
                         avg_temperature + 
                         precipitation + Aircraft - 1, 
                       data = data_exercises_top_3)
+#summary(top_3_exercise_lm_out)
+
 top_3_exercise_lm_out %>%
   tidy() %>%
   arrange(p.value) %>%
   select(term, p.value, estimate) %>% 
   knitr::kable( caption = "P values for '16,17,18,23,30'")
+# residual plot
+plot(top_3_exercise_lm_out$residuals, top_3_exercise_lm_out$fitted.values)
+
 ```
+
+
 From these results we could not identify any common features between the three models.
 Additionally, for all models, all factors have a p-value > 0.05 and thus individually are not statistically significant.
 We can conclude that 
