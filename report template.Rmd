@@ -254,14 +254,27 @@ clean_data_processed %>%
 
 fit.full = lm(`Average Cost Per Session` ~ `avg_temperature` + `avg_relative_humidity`+ `avg_dew_point` + `avg_pressure_sea` + `avg_pressure_station` + `avg_visibility` + `avg_health_index` + `precipitation` + `avg_cloud_cover_4`+ COVID + Season + n_exercises - 1, data=daily_average_cost_per_hour)
 summary(fit.full)
-plot(fit.full$residuals, fit.full$fitted.values)
 ```
 
 ### Analysis of the Cost per Session Regression Model
 
+Looking at the summary for the cost model, it can be seen that there are many covariates with low p-values such as `SeasonSummer`, `SeasonWinter`, `avg_health_index`, `n_exercises`, `avg_pressure_sea`, `avg_pressure_station`, `precipitation`, and `avg_cloud_cover_4`. In addition, we observe that our cost model has a very high R-squared value so this shows our model fits the data well.
+
+```{r}
+plot(fit.full$fitted.values, fit.full$residuals)
+```
+
+Looking at the residual plots, we see that there is a pattern where the residuals are centered around 0 to form a oval shape. This tells us that our cost model can be improved by ways of transformations. So again, we utilized a boxcox transformation to improve the model.
 
 
+```{r}
+boxcox(fit.full)
+fit.full.2 = lm(`Average Cost Per Session` ^ 0.15 ~ `avg_temperature` + `avg_relative_humidity`+ `avg_dew_point` + `avg_pressure_sea` + `avg_pressure_station` + `avg_visibility` + `avg_health_index` + `precipitation` + `avg_cloud_cover_4`+ COVID + Season + n_exercises - 1, data=daily_average_cost_per_hour)
+summary(fit.full.2)
+plot(fit.full.2$fitted.values, fit.full.2$residuals)
+```
 
+Unfortunately, after running the boxcox transformation we still see a pattern in the residuals plot and so the quality of our model is about the same as before.
 
 ## Summary 
 
