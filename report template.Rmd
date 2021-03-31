@@ -185,42 +185,81 @@ summary(duration.fit.2)
 plot(duration.fit.2$residuals, duration.fit.2$fitted.values)
 ```
 
-Unfortunately, despite attempting to remove variables with high correlation, the model still performed poorly with high p-values. A further look into the residual plot gave a clear indication that the linear regression model assumption of having a constant variation among residuals was being violated, giving a further indication that a linear model is not a good fit for the data. To remidy this a boxcox 
-
-
-
-### Plan:
-1. try to fit and analyze R squared and pvalues
-2. high R squared and pvalues, therefore we suspected that it might be multi-collinearity of the data hence calculated a correlation matrix for the weather data (culprit)
-3. there was high correlation between some values, which we decided to remove
-4. model was still performing poorly
-5. decided to take a power of the y and log of y to see if it will change the model, but it was the same
-6. since we didnt find any significant factors that can be used, we will create a cost model with all covariates
-
+Unfortunately, despite attempting to remove variables with high correlation, the model still performed poorly with high p-values. A further look into the residual plot gave a clear indication that the linear regression model assumption of having a constant variation among residuals was being violated, giving a further indication that a linear model is not a good fit for the data. To remidy this a boxcox transformation was attempted to see if a power of the response variable would improve the linear model fit.
 
 ```{r}
-plot(top_1_exercise_lm_out$residuals, top_1_exercise_lm_out$fitted.values)
+library(MASS)
+boxcox(duration.fit.2)
 ```
 
+Unfortunately, it seemed that the power of 1 is still one of the best, therefore putting the response variable to a different power wouldn't improve the model. Another attempt at taking log function of the response variable was undertaken instead.
 
-
-
-
-
-From these results we could not identify any common features between the three models.
-Additionally, for all models, all factors have a p-value > 0.05 and thus individually are not statistically significant.
-We can conclude that 
-
-### Some Sub-section Title     
-
-
-(*R output tables can be formatted nicely in .html with* `knitr::kable()`) 
-
-```{r, echo = FALSE}
-tibble( X = c("this", "my"), 
-        Y = c("is", "table") ) %>% 
-  knitr::kable( caption = "Table Caption")
+```{r}
+# add covid to the dataset
+duration.fit.2 = lm(log(Total_Duration) ~ 
+                        avg_relative_humidity +
+                        avg_pressure_sea +
+                        avg_visibility +
+                        avg_health_index +
+                        avg_cloud_cover_4 + 
+                        avg_temperature + 
+                        precipitation + Season - 1, 
+                      data = duration.data)
+summary(duration.fit.2)
 ```
+
+However, the R-squared drastically decreased to 0.061 and the p-values were still high therefore the model is still insufficient.
+
+## Summary of Duration Per Session Model
+Overall, it seemed that using the linear regression model to fit a model over the data is not the appropriate model for this data due to the high p-values and thus the low statistical significance of the covariates in predicting the response variable. Our initial plan was to fit all duration vs all the possible covariates and choosing the most statiscally significant covariates to use in the following Cost per Session model. However, since there are none, we will be fitting the Cost per Session model using all the covariates.
+
+```{r}
+### Plan:
+#1. try to fit and analyze R squared and pvalues
+#2. high R squared and pvalues, therefore we suspected that it might be multi-collinearity of the data hence calculated a correlation matrix for the weather data (culprit)
+#3. there was high correlation between some values, which we decided to remove
+#4. model was still performing poorly
+#5. decided to take a power of the y and log of y to see if it will change the model, but it was the same
+#6. since we didnt find any significant factors that can be used, we will create a cost model with all covariates
+```
+
+How was the data prepared?
+
+The aircraft operating cost was calculated by calculating the aircraft operating cost per session, then finding the cost per session per hour. The cost was calculated using the equation below. 
+
+(insert equation)
+
+The aircraft operating cost equation uses duration, fuel price per gallon and an average number of gallons consumed per hour (6) as well as an estimated maintenance and repairs cost per hour (15). The cost for each session is calculated and then divided by the duration of the session to obtain the cost per hour per session. The data frame is then grouped by date and an average cost per hour is calculated for each date to smoothy join the data frame with the daily weather data. A linear regression model can then be built using this data frame.
+
+Why investigate this model?
+
+It is intuitive to think that the duration of a flight will be affected by the weather. Factors such as cloud coverage, wind and precipitation can affect an aircraft/pilot’s performance, thus the duration of flight/lesson. With an increase in flight duration comes an increase in maintenance and fuel costs. Therefore, we should expect that there will be weather factors in our data that can be significant predictors for the cost to a certain extent.
+
+It is also known that jet fuel price does change monthly/seasonally depending on seasonal travel, such as during Christmas and Summer. Therefore, we should expect that there are seasonal changes to the aircraft operating costs. Since seasonal changes in jet fuel costs are fairly obvious and weather data is closely correlated to seasonal weather changes, we expect the weather factors that we are using to be able to predict the aircraft operating cost. 
+
+In addition, since COVID-19 has dramatically impacted the Airline industry, which is closely related to jet fuel, we will also be investigating COVID-19 being a factor in predicting the aircraft operating costs.
+
+## Cost per session model
+
+```{r}
+clean_data_processed = clean_data_processed
+
+clean_data_processed %>% 
+  group_by(Session_ID) %>%
+  mutate(`Cost Per Session`=(Duration*`Fuel Price Per Gallon`*6 + 15*Duration), n_exercises=n()) %>%
+  distinct(Session_ID, .keep_all = T) %>%
+  group_by(Date) %>%
+  mutate(`Average Cost Per Session`= mean(`Cost Per Session`)) %>%
+  arrange(Date) -> daily_average_cost_per_hour
+
+fit.full = lm(`Average Cost Per Session` ~ `avg_temperature` + `avg_relative_humidity`+ `avg_dew_point` + `avg_pressure_sea` + `avg_pressure_station` + `avg_visibility` + `avg_health_index` + `precipitation` + `avg_cloud_cover_4`+ COVID + Season + n_exercises - 1, data=daily_average_cost_per_hour)
+summary(fit.full)
+plot(fit.full$residuals, fit.full$fitted.values)
+```
+
+### Analysis of the Cost per Session Regression Model
+
+
 
 
 
