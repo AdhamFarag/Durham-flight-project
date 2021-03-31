@@ -374,9 +374,7 @@ ggarrange(aircraft_demand_seasonal, aircraft_demand_monthly)
 View(clean_data_processed)
 ```
 
-
 # NEW MODELS
-
 
 ## Cost model
 ```{r}
@@ -384,16 +382,37 @@ clean_data_processed = clean_data_processed %>% filter(Year %in% c(2019, 2020))
 
 clean_data_processed %>% 
   distinct(Session_ID, .keep_all = T) %>%
-  mutate(`Cost Per Hour Per Session`=(Duration*`Fuel Price Per Gallon`*6 + 10) / Duration) %>%
+  mutate(`Cost Per Hour Per Session`=(Duration*`Fuel Price Per Gallon`*6 + 15*Duration) / Duration) %>%
   group_by(Date) %>%
   mutate(`Average Cost Per Hour`= mean(`Cost Per Hour Per Session`)) %>%
   arrange(Date) -> daily_average_cost_per_hour
 
-daily_average_cost_per_hour
+fit.full = lm(`Average Cost Per Hour` ~ `avg_temperature` + `avg_relative_humidity`+ `avg_dew_point` + `avg_pressure_sea` + `avg_pressure_station` + `avg_visibility` + `avg_health_index` + `precipitation` + `avg_cloud_cover_4`+ COVID + Season - 1, data=daily_average_cost_per_hour)
 
-#fit = lm(`Average Cost Per Hour` ~ `Mean Temp (°C)`, data=daily_average_cost_per_hour)
-#summary(fit)
+summary(fit.full)
 ```
+
+Need to revisit the model since I believe the cost equation doesn't account for the estimated maintenance cost per hour.
+
+
+
+The aircraft operating cost was calculated by calculating the aircraft operating cost per session, then finding the cost per session per hour. The cost was calculated using the equation below. (insert equation). The aircraft operating cost equation uses duration, fuel price per gallon and an average number of gallons consumed per hour (6) and a 
+
+
+Why investigate this model?
+
+
+
+Two main reasons:
+
+duration of flight is directly affected by the weather therefore if it is slighty more cloudy than usual it may increase the flight duration and therefore indirectly increasing the cost as well.
+fuel price per gallon: affected by season which can be predicted by the weather factors therefore 
+
+With these two together we can predict depending on the weather how the cost can change
+
+Findings:
+
+
 
 
 ## Duration model
