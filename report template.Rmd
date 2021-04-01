@@ -315,7 +315,7 @@ Unfortunately, despite attempting to remove variables with high correlation, the
 
 ```{r}
 library(MASS)
-boxcox(duration.fit.2)
+boxcox(duration.fit.2, xlab="Power of Y")
 ```
 
 Unfortunately, it seemed that the power of 1 is still one of the best, therefore putting the response variable to a different power wouldn't improve the model. Another attempt at taking the log function of the response variable was undertaken instead.
@@ -380,7 +380,7 @@ Analyzing the residual plot, the residuals are not randomly scattered, rather th
 
 ```{r}
 library(MASS)
-boxcox(fit.full)
+boxcox(fit.full, xlab="Power of Y")
 fit.full.2 = lm(`Average Cost Per Session` ^ 0.1 ~ `avg_temperature` + `avg_relative_humidity`+ `avg_dew_point` + `avg_pressure_sea` + `avg_pressure_station` + `avg_visibility` + `avg_health_index` + `precipitation` + `avg_cloud_cover_4`+ COVID + Season + n_exercises - 1, data=daily_average_cost_per_hour)
 plot(fit.full.2$fitted.values, fit.full.2$residuals, xlab="Fitted Values", ylab="Residuals")
 ```
