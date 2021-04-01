@@ -39,8 +39,12 @@ Link to RStudio Cloud shared project: https://rstudio.cloud/
 
 6. What are the total aircraft operating costs over month/season/year?  
   - assuming we know total number of planes
-Why investigate this model?  It is intuitive to think that the duration of a flight will be affected by the weather. Factors such as cloud coverage, wind and precipitation can affect an aircraft/pilot’s performance, thus the duration of flight/lesson. With an increase in flight duration comes an increase in maintenance and fuel costs. Therefore, we should expect that there will be weather factors in our data that can be significant predictors for the cost to a certain extent.  It is also known that jet fuel price does change monthly/seasonally depending on seasonal travel, such as during Christmas and Summer. Therefore, we should expect that there are seasonal changes to the aircraft operating costs. Since seasonal changes in jet fuel costs are fairly obvious and weather data is closely correlated to seasonal weather changes, we expect the weather factors that we are using to be able to predict the aircraft operating cost.   
-In addition, since COVID-19 has dramatically impacted the Aircraft industry so we here explore to see if this has affected the company and to find any sginificance or corelation between the pandemic as well as demand on the company
+
+	Why investigate this model?  It is intuitive to think that the duration of a flight will be affected by the weather. Factors such as cloud coverage, wind and precipitation can affect an aircraft/pilot’s performance, thus the duration of flight/lesson. With an increase in flight duration comes an increase in maintenance and fuel costs. Therefore, we should expect that there will be weather factors in our data that can be significant predictors for the cost to a certain extent.  It is also known that jet fuel price does change monthly/seasonally depending on seasonal travel, such as during Christmas and Summer. Therefore, we should expect that there are seasonal changes to the aircraft operating costs. Since seasonal changes in jet fuel costs are fairly obvious and weather data is closely correlated to seasonal weather changes, we expect the weather factors that we are using to be able to predict the aircraft operating cost.   
+	In addition, since COVID-19 has dramatically impacted the Aircraft industry so we here explore to see if this has affected the company and to find any sginificance or corelation between the pandemic as well as demand on the company
+
+
+
 ### Data 
 ```{r , results='hide', include=FALSE, warning=FALSE}
 source(file = "preprocess_data.R")
