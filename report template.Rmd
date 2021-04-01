@@ -178,7 +178,7 @@ The external data that is used in this project were gathered from the following 
   - Maintenance costs and repairs (https://cessna150152club.org/Costs):
       - The annual operating cost of a Cessna plane model for maintenance and repairs
       - Based on this research, an assumed 15 dollars static cost per hour was added to each training session cost
-      - In addition, the fuel consumption per hour is estimated to be 6
+      - In addition, the fuel consumption per hour is estimated to be 6 gallons
   - Weather (https://oshawa.weatherstats.ca/download.html):
       - Historical weather data by day, including temp, precipitation, wind, etc.
       - Gathered data from Oshawa location
@@ -342,12 +342,12 @@ However, the R-squared drastically decreased to 0.061 and the p-values were stil
 Overall, it seemed that using the linear regression model to fit a model over the data is not the appropriate model for this data due to the high p-values and thus the low statistical significance of the covariates in predicting the response variable. Our initial plan was to fit all duration vs all the possible covariates and choosing the most statistically significant covariates to use in the following Cost per Session model. However, since there are none, we will be fitting the Cost per Session model using all the covariates.
 
 
-### Question 2: What factors affect cost in a significant matter?
+### Question 3: What factors affect cost in a significant matter?
 **How was the data prepared?**
 
 The aircraft operating cost was calculated by calculating the aircraft operating cost per session, then finding the cost per session per hour. The cost was calculated using the equation below. 
 
-(insert equation)
+`CostPerSession = (Duration * (FuelPricePerGallon*GallonsPerHr + OperatingCostPerHr))`
 
 The aircraft operating cost equation uses duration, fuel price per gallon, and an average number of gallons consumed per hour (6) as well as an estimated maintenance and repairs cost per hour (15). The cost for each session is calculated and then divided by the duration of the session to obtain the cost per hour per session. The data frame is then grouped by date and an average cost per hour is calculated for each date to smoothly join the data frame with the daily weather data. A linear regression model can then be built using this data frame.
 
