@@ -391,14 +391,22 @@ From the boxcox transformation plot, it can be deduced that the best transformat
 ### Interpreting the statistically significant covariates
 
 The analysis below for the COVID-19 covariates assumes that every other variable is held constant:
-* SeasonSummer - during summer the cost increases by 1 dollar per session
-* SeasonWinter - during winter the cost increases by 2.26 dollars per session
-* avg_health_index - for each unit increase in the avg_health_index the cost increases by 0.74 dollars per session
-* n_exercises - for each additional exercise the cost decreases by 0.13 dollars per session
-* avg_pressure_sea - for each unit increase in the avg_pressure_sea the cost decreases by 31 dollars per session
-* avg_pressure_station - for each unit increase in the avg_pressure_station the cost increases by 32 dollars per session
-* precipitation - for each unit increase in the precipitation the cost decreases by 0.07 dollars per session
-* avg_cloud_cover_4 - for each unit increase in the precipitation the cost decreases by 0.34 dollars per session
+
+* `SeasonSummer` - during summer the cost increases by 1 dollar per session
+
+* `SeasonWinter` - during winter the cost increases by 2.26 dollars per session
+
+* `avg_health_index` - for each unit increase in the `avg_health_index` the cost increases by 0.74 dollars per session
+
+* `n_exercises` - for each additional exercise the cost decreases by 0.13 dollars per session
+
+* `avg_pressure_sea` - for each unit increase in the `avg_pressure_sea` the cost decreases by 31 dollars per session
+
+* `avg_pressure_station` - for each unit increase in the `avg_pressure_station` the cost increases by 32 dollars per session
+
+* `precipitation` - for each unit increase in the precipitation the cost decreases by 0.07 dollars per session
+
+* `avg_cloud_cover_4` - for each unit increase in the precipitation the cost decreases by 0.34 dollars per session
 
 An interesting observation is that as the number of exercises increasing is associated with the cost going down - this does not mean causation, rather just association, meaning that increasing the number of exercises doesn't result in a decrease in cost. A possible explanation is that there can be a lot of easy exercises for beginner sessions that don't take long to complete therefore lowering the duration of the session thus lowering the cost per session.
 
