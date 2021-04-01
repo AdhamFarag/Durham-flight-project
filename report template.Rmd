@@ -8,20 +8,19 @@ geometry: margin=1in
 knitr::opts_chunk$set( echo=FALSE, # hide code from document
                        warning=FALSE, # hide warnings 
                        message=FALSE) # hide messages 
-library(tidyverse)
-library(tidyverse)
 library(lubridate)
 library(ggpubr)
 library(rvest)
 library(broom)
 library(MASS)
+library(tidyverse)
 ```
 
 # STAA57 W21 Draft Report 
 
 Group 4 (Adham F, Jason Y, Mohamed T, Wesley M)
 
-Link to RStudio Cloud shared project: https://rstudio.cloud/
+Link to RStudio Cloud shared project: https://rstudio.cloud/spaces/115177/project/2202760
 
 ***
 
@@ -41,7 +40,6 @@ The topic of this paper is to investigate the aircraft operating cost of DFC, pa
 
 ## Data 
 ```{r , results='hide', include=FALSE, warning=FALSE}
-# Data pre-processing
 rm(list = ls())
 
 raw_data = NULL
