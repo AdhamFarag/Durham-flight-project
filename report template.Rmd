@@ -370,14 +370,13 @@ Refer to *Figure 5*
 
 **Analysis of the Cost per Session Regression Model**
 
-
-Looking at the summary for the cost model, it can be seen that there are covariates with low p-values below 0.05 such as `SeasonSummer`, `SeasonWinter`, `avg_health_index`, `n_exercises`, `avg_pressure_sea`, `avg_pressure_station`, `precipitation`, and `avg_cloud_cover_4`. This indicates that there is a statistical significance for these covariates when predicting the Cost per Session for a day, as they all were able to reject the null hypothesis for the t-test with an alpha of 0.05. Therefore, we can conclude that these covariates are associated with the Cost per Session with 95% confidence. In addition, we observe that our cost model has a very high R-squared value of 0.98 so this shows our model fits the data well and can explain 98% of the variation in the Cost per Session. 
+Looking at the summary for the cost model, there are covariates with p-values below 0.05: `SeasonSummer`, `SeasonWinter`, `avg_health_index`, `n_exercises`, `avg_pressure_sea`, `avg_pressure_station`, `precipitation`, and `avg_cloud_cover_4`. This indicates that there is a statistical significance for these covariates when predicting the Cost per Session for a day, as they all were able to reject the null hypothesis for the t-test with an alpha of 0.05. Therefore, we can conclude that these covariates are associated with the Cost per Session with 95% confidence. In addition, we observe that our cost model has a very high R-squared value of 0.98 so this shows our model fits the data well and can explain 98% of the variation in the Cost per Session. Before interpreting the fitted linear regression equation, a residual analysis is undertaken.
 
 ```{r}
 plot(fit.full$fitted.values, fit.full$residuals, xlab="Fitted Values", ylab="Residuals")
 ```
 
-However, analyzing the residual plot, the residuals are not randomly scattered, rather they are centered around 0 forming an oval shape. This tells us that our cost model can be improved by ways of transformations as the errors do not follow a constant variance. So again,a boxcox transformation was utalized to attempt to improve the model.
+Analyzing the residual plot, the residuals are not randomly scattered, rather they are centered around 0 forming an oval shape. This conveys that the Cost per Session model can be improved by transformations of the response and covariates as the errors do not follow a constant variance. So again,a boxcox transformation was utalized to attempt to improve the model.
 
 ```{r}
 library(MASS)
@@ -387,12 +386,21 @@ plot(fit.full.2$fitted.values, fit.full.2$residuals, xlab="Fitted Values", ylab=
 ```
 
 Refer to *Figure 6*
+From the boxcox transformation plot, it can be deduced that the best transformation is to raise the power of the response variable to 0.1. The covariates that reject the null hypothesis of the t-test with an alpha of 0.05 are: `avg_pressure_sea`, `avg_pressure_station`, `avg_health_index`, `precipitation`, `COVIDFALSE`, `COVIDTRUE`, `SeasonSummer` and `n_exercises`. Unlike the previous model without transformation of the response variable, `SeasonWinter` and `avg_cloud_cover_4` are no longer statistically significant but COVID-19 is now statistically significant. Thus, these covariates are associated with the Cost per Session with 95% confidence. However, even after running the boxcox transformation we still see a non-random pattern in the residuals plot and so the quality of our model is about the same as before in terms of residual plot analysis. For the sake of interpretation simplicity the first model is chosen as the linear regression fit.
 
-From the boxcox transformation plot, it can be deduced that the best transformation is to raise the power of the response variable to 0.1. The covariates that reject the null hypothesis of the t-test are: `avg_pressure_sea`, `avg_pressure_station`, `avg_health_index`, `precipitation`, `COVIDFALSE`, `COVIDTRUE`, `SeasonSummer` and `n_exercises`. Unlike the previous model without transformation of the response variable, `SeasonWinter` and `avg_cloud_cover_4` are no longer statistically significant.
+### Interpreting the statistically significant covariates
 
-These are the most statistically significant covariates when predicting the Cost per Session for a day. When this model is used, the effect of COVID-19 become statistically significant.
+The analysis below for the COVID-19 covariates assumes that every other variable is held constant:
+* SeasonSummer - during summer the cost increases by 1 dollar per session
+* SeasonWinter - during winter the cost increases by 2.26 dollars per session
+* avg_health_index - for each unit increase in the avg_health_index the cost increases by 0.74 dollars per session
+* n_exercises - for each additional exercise the cost decreases by 0.13 dollars per session
+* avg_pressure_sea - for each unit increase in the avg_pressure_sea the cost decreases by 31 dollars per session
+* avg_pressure_station - for each unit increase in the avg_pressure_station the cost increases by 32 dollars per session
+* precipitation - for each unit increase in the precipitation the cost decreases by 0.07 dollars per session
+* avg_cloud_cover_4 - for each unit increase in the precipitation the cost decreases by 0.34 dollars per session
 
-However, even after running the boxcox transformation we still see a non-random pattern in the residuals plot and so the quality of our model is about the same as before in terms of residual plot analysis, thus the residuals don't seem to following a constant variance and violates one of the assumptions of linear regression.
+An interesting observation is that as the number of exercises increasing is associated with  the cost going down - this does not mean causation, rather just association, meaning that increasing the number of exercises doesn't result in a decrease in cost. A possible explanation is that there can be a lot of easy exercises for beginner sessions which don't take long to complete therefore lowering the duration of the session thus lowering the cost per session.
 
 ## Summary 
 
