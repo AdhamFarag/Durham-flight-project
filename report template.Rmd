@@ -175,9 +175,10 @@ clean_data_processed <- left_join(clean_data_processed, climate_data, by=c("Date
 
 The external data that is used in this project were gathered from the following sources:
   
-  - AVGAS: (NEW LINK)
-      - From preliminary research, it was found that C-172, C-150 and C-152 aircraft models only consume jet fuel [https://airshare.com/blog/cessna-172/](https://airshare.com/blog/cessna-172/#:~:text=and%20accessible%20training.-,What%20type%20of%20fuel%20does%20it%20use%3F,to%20power%20it%27s%20piston%20engine)
-      - The AVGAS historical data from BLANK is given by the month, including the cost per gallon and percentage change
+  - Fuel (https://www.indexmundi.com/commodities/?commodity=jet-fuel&months=240&currency=cad)
+      - Historical fuel data by month, including the cost/gallon and %change
+      - Assuming that all planes used in the flight school use the same fuel
+      - From preliminary research, it was found that C-172, C-150 and C-152 aircraft models only consume jet fuel 
   - Maintenance costs and repairs (https://cessna150152club.org/Costs):
       - The annual operating cost of a Cessna plane model for maintenance and repairs
       - Based on this research, an assumed 15 dollars static cost per hour was added to each training session cost
