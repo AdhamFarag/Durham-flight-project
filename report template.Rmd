@@ -284,7 +284,7 @@ duration.fit.1 = lm(Total_Duration ~
 
 **Analysis for Duration per Session linear regression model**
 
-It can be seen from the summary function that the p-values for all the covariates are high, despite having a high R-squared of 0.89. Having a high R-squared is good for a model since most of the variation in the response variable can be explained through the model. However, coupled with high p-values for all covariates renders the model useless as it implies that none of the covariates have a satistical significance in association with the total duration. Intuitively since we are multiple covariates from weather data, it was thought that multiple collinearities might be the cause of the high p-values. Hence, a correlation matrix for the weather data was calculated.
+It can be seen from the summary function that the p-values for all the covariates are high, despite having a high R-squared of 0.89. Having a high R-squared is good for a model since most of the variation in the response variable can be explained through the model. However, coupled with high p-values for all covariates renders the model useless as it implies that none of the covariates have a statistical significance in association with the total duration. Intuitively since we are multiple covariates from weather data, it was thought that multiple collinearities might be the cause of the high p-values. Hence, a correlation matrix for the weather data was calculated.
 
 **Correlation matrix for the weather covariates**
 Refer to *Figure 2*
