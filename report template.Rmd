@@ -229,7 +229,7 @@ From the above graph, it can be seen there was a significant decrease in the jet
 
 For sessions that perform a particular exercise set, we suspect that their total duration should be around the average total duration for that same exercise set, unless there are external factors that affect it. Thus we can utilize a multiple linear regression model to show any significance for external factors against duration.
 
-To prepare the data for our model, we first have to group the data by exercise set. Noting that there are a lot of unique exercise combinations as we deemed that to have enough data for this analysis. 
+To prepare the data for our model, we first have to group the data by exercise set. Noting that there are a lot of unique exercise combinations, we grabbed only the sessions that perform the most popular exercise set as we deemed that to have enough data for this analysis. 
 
 We also noted that we have to compute the total duration for a single session since a single session might have multiple training types resulting in multiple rows. Therefore we aggregated the rows to get the total duration for a particular session. To do this we can simply grouped by `Session_ID` and added the duration.
 
