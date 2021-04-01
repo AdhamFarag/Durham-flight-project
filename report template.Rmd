@@ -337,6 +337,7 @@ However, the R-squared drastically decreased to 0.061 and the p-values were stil
 
 Overall, it seemed that using the linear regression model to fit a model over the data is not the appropriate model for this data due to the high p-values and thus the low statistical significance of the covariates in predicting the response variable. Our initial plan was to fit all duration vs all the possible covariates and choosing the most statiscally significant covariates to use in the following Cost per Session model. However, since there are none, we will be fitting the Cost per Session model using all the covariates.
 
+
 ### Question 2: What factors affect cost in a significant matter?
 **How was the data prepared?**
 
@@ -346,18 +347,8 @@ The aircraft operating cost was calculated by calculating the aircraft operating
 
 The aircraft operating cost equation uses duration, fuel price per gallon and an average number of gallons consumed per hour (6) as well as an estimated maintenance and repairs cost per hour (15). The cost for each session is calculated and then divided by the duration of the session to obtain the cost per hour per session. The data frame is then grouped by date and an average cost per hour is calculated for each date to smoothy join the data frame with the daily weather data. A linear regression model can then be built using this data frame.
 
-Why investigate this model?
-
-It is intuitive to think that the duration of a flight will be affected by the weather. Factors such as cloud coverage, wind and precipitation can affect an aircraft/pilot’s performance, thus the duration of flight/lesson. With an increase in flight duration comes an increase in maintenance and fuel costs. Therefore, we should expect that there will be weather factors in our data that can be significant predictors for the cost to a certain extent.
-
-It is also known that jet fuel price does change monthly/seasonally depending on seasonal travel, such as during Christmas and Summer. Therefore, we should expect that there are seasonal changes to the aircraft operating costs. Since seasonal changes in jet fuel costs are fairly obvious and weather data is closely correlated to seasonal weather changes, we expect the weather factors that we are using to be able to predict the aircraft operating cost. 
-
-In addition, since COVID-19 has dramatically impacted the Airline industry, which is closely related to jet fuel, we will also be investigating COVID-19 being a factor in predicting the aircraft operating costs.
-
 
 ```{r}
-clean_data_processed = clean_data_processed
-
 clean_data_processed %>% 
   group_by(Session_ID) %>%
   mutate(`Cost Per Session`=(Duration*`Fuel Price Per Gallon`*6 + 15*Duration), n_exercises=n()) %>%
@@ -367,28 +358,33 @@ clean_data_processed %>%
   arrange(Date) -> daily_average_cost_per_hour
 
 fit.full = lm(`Average Cost Per Session` ~ `avg_temperature` + `avg_relative_humidity`+ `avg_dew_point` + `avg_pressure_sea` + `avg_pressure_station` + `avg_visibility` + `avg_health_index` + `precipitation` + `avg_cloud_cover_4`+ COVID + Season + n_exercises - 1, data=daily_average_cost_per_hour)
-summary(fit.full)
+summary(fit.full) 
 ```
 
 **Analysis of the Cost per Session Regression Model**
 
-Looking at the summary for the cost model, it can be seen that there are many covariates with low p-values such as `SeasonSummer`, `SeasonWinter`, `avg_health_index`, `n_exercises`, `avg_pressure_sea`, `avg_pressure_station`, `precipitation`, and `avg_cloud_cover_4`. In addition, we observe that our cost model has a very high R-squared value so this shows our model fits the data well.
+
+Looking at the summary for the cost model, it can be seen that there are covariates with low p-values below 0.05 such as `SeasonSummer`, `SeasonWinter`, `avg_health_index`, `n_exercises`, `avg_pressure_sea`, `avg_pressure_station`, `precipitation`, and `avg_cloud_cover_4`. This indicates that there is a statistical significance for these covariates when predicting the Cost per Session for a day, as they all were able to reject the null hypothesis for the t-test with an alpha of 0.05. Therefore, we can conclude that these covariates are associated with the Cost per Session with 95% confidence. In addition, we observe that our cost model has a very high R-squared value of 0.98 so this shows our model fits the data well and can explain 98% of the variation in the Cost per Session. 
 
 ```{r}
 plot(fit.full$fitted.values, fit.full$residuals)
 ```
 
-Looking at the residual plots, we see that there is a pattern where the residuals are centered around 0 to form a oval shape. This tells us that our cost model can be improved by ways of transformations. So again, we utilized a boxcox transformation to improve the model.
-
+However, analyzing the residual plot, the residuals are not randomly scattered, rather they are centered around 0 forming an oval shape. This tells us that our cost model can be improved by ways of transformations as the errors do not follow a constant variance. So again,a boxcox transformation was utalized to attempt to improve the model.
 
 ```{r}
+library(MASS)
 boxcox(fit.full)
-fit.full.2 = lm(`Average Cost Per Session` ^ 0.15 ~ `avg_temperature` + `avg_relative_humidity`+ `avg_dew_point` + `avg_pressure_sea` + `avg_pressure_station` + `avg_visibility` + `avg_health_index` + `precipitation` + `avg_cloud_cover_4`+ COVID + Season + n_exercises - 1, data=daily_average_cost_per_hour)
+fit.full.2 = lm(`Average Cost Per Session` ^ 0.1 ~ `avg_temperature` + `avg_relative_humidity`+ `avg_dew_point` + `avg_pressure_sea` + `avg_pressure_station` + `avg_visibility` + `avg_health_index` + `precipitation` + `avg_cloud_cover_4`+ COVID + Season + n_exercises - 1, data=daily_average_cost_per_hour)
 summary(fit.full.2)
 plot(fit.full.2$fitted.values, fit.full.2$residuals)
 ```
 
-Unfortunately, after running the boxcox transformation we still see a pattern in the residuals plot and so the quality of our model is about the same as before.
+From the boxcox transformation plot, it can be deduced that the best transformation is to raise the power of the response variable to 0.1. The covariates that reject the null hypothesis of the t-test are: `avg_pressure_sea`, `avg_pressure_station`, `avg_health_index`, `precipitation`, `COVIDFALSE`, `COVIDTRUE`, `SeasonSummer` and `n_exercises`. Unlike the previous model without transformation of the response variable, `SeasonWinter` and `avg_cloud_cover_4` are no longer statistically significant.
+
+These are the most statistically significant covariates when predicting the Cost per Session for a day. When this model is used, the effect of COVID-19 become statistically significant.
+
+However, even after running the boxcox transformation we still see a non-random pattern in the residuals plot and so the quality of our model is about the same as before in terms of residual plot analysis, thus the residuals don't seem to following a constant variance and violates one of the assumptions of linear regression.
 
 ## Summary 
 

@@ -376,12 +376,16 @@ View(clean_data_processed)
 
 # NEW MODELS
 
-## Cost model
 ```{r}
-clean_data_processed = clean_data_processed %>% filter(Year %in% c(2019, 2020))
+head(clean_data_processed)
+```
+
+
+## Cost per hour per session model
+```{r}
 
 clean_data_processed %>% 
-  distinct(Session_ID, .keep_all = T) %>%
+  group(Session_ID, .keep_all = T) %>%
   mutate(`Cost Per Hour Per Session`=(Duration*`Fuel Price Per Gallon`*6 + 15*Duration) / Duration) %>%
   group_by(Date) %>%
   mutate(`Average Cost Per Hour`= mean(`Cost Per Hour Per Session`)) %>%
@@ -392,7 +396,9 @@ fit.full = lm(`Average Cost Per Hour` ~ `avg_temperature` + `avg_relative_humidi
 summary(fit.full)
 ```
 
-Need to revisit the model since I believe the cost equation doesn't account for the estimated maintenance cost per hour.
+
+
+
 
 
 
