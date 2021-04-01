@@ -179,7 +179,7 @@ The external data that is used in this project were gathered from the following 
       - The annual operating cost of a cessna plane model for maintenance and repairs
       - Based on this research,an assumed 15 dollar static cost per hour was added to each training session cost
       - In addition, the fuel consumption per hour is estimated to be 6
-  - Weather (https://climate.weather.gc.ca/historical_data/search_historic_data_e.html):
+  - Weather (https://oshawa.weatherstats.ca/download.html):
       - Historical weather data by day, including temp, precipitation, wind, etc.
       - Gathered data from Oshawa location
 
