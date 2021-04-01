@@ -283,7 +283,7 @@ duration.fit.1 = lm(Total_Duration ~
 ```
 
 **Analysis for Duration per Session linear regression model**
-It can be seen from the summary function that the p-values for all the covariates are high, despite having a high R-squared of 0.89. Having a high R-squared is good for a model since most of the variation in the response variable can be explained through the model. However coupled with high p-values for all covariates renders the model useless as it implies that none of the covariates have a satistical significance in association with the total duration. Intuitively since we are multiple covariates from weather data, it was thought that multiple collinearity might be the cause of the high p-values. Hence, a correlation matrix for the weather data was calculated.
+It can be seen from the summary function that the p-values for all the covariates are high, despite having a high R-squared of 0.89. Having a high R-squared is good for a model since most of the variation in the response variable can be explained through the model. However, coupled with high p-values for all covariates renders the model useless as it implies that none of the covariates have a satistical significance in association with the total duration. Intuitively since we are multiple covariates from weather data, it was thought that multiple collinearities might be the cause of the high p-values. Hence, a correlation matrix for the weather data was calculated.
 
 **Correlation matrix for the weather covariates**
 Refer to *Figure 2*
@@ -349,9 +349,9 @@ The aircraft operating cost was calculated by calculating the aircraft operating
 
 (insert equation)
 
-The aircraft operating cost equation uses duration, fuel price per gallon and an average number of gallons consumed per hour (6) as well as an estimated maintenance and repairs cost per hour (15). The cost for each session is calculated and then divided by the duration of the session to obtain the cost per hour per session. The data frame is then grouped by date and an average cost per hour is calculated for each date to smoothy join the data frame with the daily weather data. A linear regression model can then be built using this data frame.
+The aircraft operating cost equation uses duration, fuel price per gallon, and an average number of gallons consumed per hour (6) as well as an estimated maintenance and repairs cost per hour (15). The cost for each session is calculated and then divided by the duration of the session to obtain the cost per hour per session. The data frame is then grouped by date and an average cost per hour is calculated for each date to smoothly join the data frame with the daily weather data. A linear regression model can then be built using this data frame.
 
-Since the cost of each session is dependent on the duration, we observed that session duration can vary due to the exercises being performed as well as the quantity of exercises. Some sessions might have more exercises and thus have a higher cost. Due to the lack of information of expected individual exercise duration, we assumed that each exercise will have the same duration. Since the cost of a session is related to the exercises being performed, we added a column representing the number of exercises in a session and added that to our model.
+Since the cost of each session is dependent on the duration, we observed that session duration can vary due to the exercises being performed as well as the number of exercises. Some sessions might have more exercises and thus have a higher cost. Due to the lack of information on the expected individual exercise duration, we assumed that each exercise will have the same duration. Since the cost of a session is related to the exercises being performed, we added a column representing the number of exercises in a session and added that to our model.
 
 ```{r}
 clean_data_processed %>% 
@@ -400,7 +400,7 @@ The analysis below for the COVID-19 covariates assumes that every other variable
 * precipitation - for each unit increase in the precipitation the cost decreases by 0.07 dollars per session
 * avg_cloud_cover_4 - for each unit increase in the precipitation the cost decreases by 0.34 dollars per session
 
-An interesting observation is that as the number of exercises increasing is associated with  the cost going down - this does not mean causation, rather just association, meaning that increasing the number of exercises doesn't result in a decrease in cost. A possible explanation is that there can be a lot of easy exercises for beginner sessions which don't take long to complete therefore lowering the duration of the session thus lowering the cost per session.
+An interesting observation is that as the number of exercises increasing is associated with the cost going down - this does not mean causation, rather just association, meaning that increasing the number of exercises doesn't result in a decrease in cost. A possible explanation is that there can be a lot of easy exercises for beginner sessions that don't take long to complete therefore lowering the duration of the session thus lowering the cost per session.
 
 ## Summary 
 
