@@ -174,10 +174,10 @@ The external data that is used in this project were gathered from the following 
   
   - AVGAS: (NEW LINK)
       - From preliminary research, it was found that C-172, C-150 and C-152 aircraft models only consume jet fuel [https://airshare.com/blog/cessna-172/](https://airshare.com/blog/cessna-172/#:~:text=and%20accessible%20training.-,What%20type%20of%20fuel%20does%20it%20use%3F,to%20power%20it%27s%20piston%20engine)
-      - The AVGAS historical data from BLANK is given by month, including the cost per gallon and percentage change
+      - The AVGAS historical data from BLANK is given by the month, including the cost per gallon and percentage change
   - Maintenance costs and repairs (https://cessna150152club.org/Costs):
-      - The annual operating cost of a cessna plane model for maintenance and repairs
-      - Based on this research,an assumed 15 dollar static cost per hour was added to each training session cost
+      - The annual operating cost of a Cessna plane model for maintenance and repairs
+      - Based on this research, an assumed 15 dollars static cost per hour was added to each training session cost
       - In addition, the fuel consumption per hour is estimated to be 6
   - Weather (https://oshawa.weatherstats.ca/download.html):
       - Historical weather data by day, including temp, precipitation, wind, etc.
@@ -227,7 +227,7 @@ From the above graph, it can be seen there was a significant decrease in the jet
 
 **How was the data prepared?**
 
-For sessions that perform a particular exercise set, we suspect that their total duration should be around the average total duration for that same exercise set, unless there are external factors that affect it. Thus we can utilize a multiple linear regression model to show any significance for external factors against duration.
+For sessions that perform a particular exercise set, we suspect that their total duration should be around the average total duration for that same exercise set unless there are external factors that affect it. Thus we can utilize a multiple linear regression model to show any significance for external factors against duration.
 
 To prepare the data for our model, we first have to group the data by exercise set. Noting that there are a lot of unique exercise combinations, we grabbed only the sessions that perform the most popular exercise set as we deemed that to have enough data for this analysis. 
 
@@ -291,7 +291,7 @@ Refer to *Figure 2*
 weather_factors = na.omit(climate_data) %>% select(-c("date","min_windchill"))
 ```
 
-From the correlation matrix, it can be seen that avg_pressure_sea and avg_pressure_station have a correlation of almost 1. avg_pressure_station was chosen to be removed as avg_pressure_sea measures are standardly used during aircraft take offs. Also, avg_dew_point and avg_temperature have a correlation of 0.9. From background research, it was found that dew_point is used as an indication of humidity and visibility, thus it was chosen to be removed from model since humidity and visibility are both given. A new linear regression model was fit disregarding these two covariates.
+From the correlation matrix, it can be seen that avg_pressure_sea and avg_pressure_station have a correlation of almost 1. avg_pressure_station was chosen to be removed as avg_pressure_sea measures are standardly used during aircraft takeoffs. Also, avg_dew_point and avg_temperature have a correlation of 0.9. From background research, it was found that dew_point is used as an indication of humidity and visibility, thus it was chosen to be removed from the model since humidity and visibility are both given. A new linear regression model was fit disregarding these two covariates.
 
 Refer to *Figure 3*
 
@@ -311,14 +311,14 @@ duration.fit.2 = lm(Total_Duration ~
 plot(duration.fit.2$fitted.values, duration.fit.2$residuals, xlab="Fitted Values", ylab="Residuals")
 ```
 
-Unfortunately, despite attempting to remove variables with high correlation, the model still performed poorly with high p-values. A further look into the residual plot gave a clear indication that the linear regression model assumption of having a constant variation among residuals was being violated, giving a further indication that a linear model is not a good fit for the data. To remidy this a boxcox transformation was attempted to see if a power of the response variable would improve the linear model fit.
+Unfortunately, despite attempting to remove variables with high correlation, the model still performed poorly with high p-values. A further look into the residual plot gave a clear indication that the linear regression model assumption of having a constant variation among residuals was being violated, giving a further indication that a linear model is not a good fit for the data. To remedy this, a boxcox transformation was attempted to see if a power of the response variable would improve the linear model fit.
 
 ```{r}
 library(MASS)
 boxcox(duration.fit.2)
 ```
 
-Unfortunately, it seemed that the power of 1 is still one of the best, therefore putting the response variable to a different power wouldn't improve the model. Another attempt at taking log function of the response variable was undertaken instead.
+Unfortunately, it seemed that the power of 1 is still one of the best, therefore putting the response variable to a different power wouldn't improve the model. Another attempt at taking the log function of the response variable was undertaken instead.
 
 ```{r}
 # add covid to the dataset
@@ -339,7 +339,7 @@ However, the R-squared drastically decreased to 0.061 and the p-values were stil
 
 **Summary of Duration Per Session Model**
 
-Overall, it seemed that using the linear regression model to fit a model over the data is not the appropriate model for this data due to the high p-values and thus the low statistical significance of the covariates in predicting the response variable. Our initial plan was to fit all duration vs all the possible covariates and choosing the most statiscally significant covariates to use in the following Cost per Session model. However, since there are none, we will be fitting the Cost per Session model using all the covariates.
+Overall, it seemed that using the linear regression model to fit a model over the data is not the appropriate model for this data due to the high p-values and thus the low statistical significance of the covariates in predicting the response variable. Our initial plan was to fit all duration vs all the possible covariates and choosing the most statistically significant covariates to use in the following Cost per Session model. However, since there are none, we will be fitting the Cost per Session model using all the covariates.
 
 
 ### Question 2: What factors affect cost in a significant matter?
@@ -376,7 +376,7 @@ Looking at the summary for the cost model, there are covariates with p-values be
 plot(fit.full$fitted.values, fit.full$residuals, xlab="Fitted Values", ylab="Residuals")
 ```
 
-Analyzing the residual plot, the residuals are not randomly scattered, rather they are centered around 0 forming an oval shape. This conveys that the Cost per Session model can be improved by transformations of the response and covariates as the errors do not follow a constant variance. So again,a boxcox transformation was utalized to attempt to improve the model.
+Analyzing the residual plot, the residuals are not randomly scattered, rather they are centered around 0 forming an oval shape. This conveys that the Cost per Session model can be improved by transformations of the response and covariates as the errors do not follow a constant variance. So again, a boxcox transformation was utilized to attempt to improve the model.
 
 ```{r}
 library(MASS)
@@ -386,7 +386,7 @@ plot(fit.full.2$fitted.values, fit.full.2$residuals, xlab="Fitted Values", ylab=
 ```
 
 Refer to *Figure 6*
-From the boxcox transformation plot, it can be deduced that the best transformation is to raise the power of the response variable to 0.1. The covariates that reject the null hypothesis of the t-test with an alpha of 0.05 are: `avg_pressure_sea`, `avg_pressure_station`, `avg_health_index`, `precipitation`, `COVIDFALSE`, `COVIDTRUE`, `SeasonSummer` and `n_exercises`. Unlike the previous model without transformation of the response variable, `SeasonWinter` and `avg_cloud_cover_4` are no longer statistically significant but COVID-19 is now statistically significant. Thus, these covariates are associated with the Cost per Session with 95% confidence. However, even after running the boxcox transformation we still see a non-random pattern in the residuals plot and so the quality of our model is about the same as before in terms of residual plot analysis. For the sake of interpretation simplicity the first model is chosen as the linear regression fit.
+From the boxcox transformation plot, it can be deduced that the best transformation is to raise the power of the response variable to 0.1. The covariates that reject the null hypothesis of the t-test with an alpha of 0.05 are: `avg_pressure_sea`, `avg_pressure_station`, `avg_health_index`, `precipitation`, `COVIDFALSE`, `COVIDTRUE`, `SeasonSummer` and `n_exercises`. Unlike the previous model without transformation of the response variable, `SeasonWinter` and `avg_cloud_cover_4` are no longer statistically significant but COVID-19 is now statistically significant. Thus, these covariates are associated with the Cost per Session with 95% confidence. However, even after running the boxcox transformation we still see a non-random pattern in the residuals plot and so the quality of our model is about the same as before in terms of residual plot analysis. For the sake of interpretation simplicity, the first model is chosen as the linear regression fit.
 
 ### Interpreting the statistically significant covariates
 
