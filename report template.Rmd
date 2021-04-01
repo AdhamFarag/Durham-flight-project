@@ -27,13 +27,13 @@ Link to RStudio Cloud shared project: https://rstudio.cloud/
 ## Introduction 
 
 1. What are the trends in jet fuel costs over different time units (months/season)?
-    - For this question we use the web scrapped to see how fuel price changes during time and we try to see how these changes affect the cost of flight or session for the company
+    - For this question, we use the web scrapped to see how fuel price changes during time and we try to see how these changes affect the cost of flight or session for the company
 
 2. What factors affect the duration of the sessions (model 1)
-    - we decide here to use a linear regression model to assess significant facotrs to how duration of session is affected
+    - we decide here to use a linear regression model to assess significant factors to how the duration of the sessions is affected
 
 3. What factors affect cost in a significant matter (model 2)
-    - we decide here to use a linear regression model to assess significant facotrs to how cost is affected
+    - we decide here to use a linear regression model to assess significant factors to how the cost is affected
 
 ## Data 
 ```{r , results='hide', include=FALSE, warning=FALSE}
@@ -236,7 +236,7 @@ We also noted that we have to compute the total duration for a single session si
 As a minor note, we also removed sessions that occurred on the ground as we wanted our model to only measure duration with real planes against external factors.
 
 Lastly, to add on the external factors we joined our weather data to the processed data set. 
-We identified an initial  set of weather factors that we believed could have a strong effect on the duration of a session. These were:
+We identified an initial set of weather factors that we believed could have a strong effect on the duration of a session. These were:
 
 * avg_relative_humidity
 * avg_dew_point
