@@ -305,7 +305,8 @@ duration.fit.2 = lm(Total_Duration ~
                         precipitation + Season - 1, 
                       data = duration.data)
 summary(duration.fit.2)
-plot(duration.fit.2$residuals, duration.fit.2$fitted.values)
+
+plot(duration.fit.2$fitted.values, duration.fit.2$residuals, xlab="Fitted Values", ylab="Residuals")
 ```
 
 Unfortunately, despite attempting to remove variables with high correlation, the model still performed poorly with high p-values. A further look into the residual plot gave a clear indication that the linear regression model assumption of having a constant variation among residuals was being violated, giving a further indication that a linear model is not a good fit for the data. To remidy this a boxcox transformation was attempted to see if a power of the response variable would improve the linear model fit.
@@ -368,7 +369,7 @@ summary(fit.full)
 Looking at the summary for the cost model, it can be seen that there are covariates with low p-values below 0.05 such as `SeasonSummer`, `SeasonWinter`, `avg_health_index`, `n_exercises`, `avg_pressure_sea`, `avg_pressure_station`, `precipitation`, and `avg_cloud_cover_4`. This indicates that there is a statistical significance for these covariates when predicting the Cost per Session for a day, as they all were able to reject the null hypothesis for the t-test with an alpha of 0.05. Therefore, we can conclude that these covariates are associated with the Cost per Session with 95% confidence. In addition, we observe that our cost model has a very high R-squared value of 0.98 so this shows our model fits the data well and can explain 98% of the variation in the Cost per Session. 
 
 ```{r}
-plot(fit.full$fitted.values, fit.full$residuals)
+plot(fit.full$fitted.values, fit.full$residuals, xlab="Fitted Values", ylab="Residuals")
 ```
 
 However, analyzing the residual plot, the residuals are not randomly scattered, rather they are centered around 0 forming an oval shape. This tells us that our cost model can be improved by ways of transformations as the errors do not follow a constant variance. So again,a boxcox transformation was utalized to attempt to improve the model.
@@ -378,7 +379,7 @@ library(MASS)
 boxcox(fit.full)
 fit.full.2 = lm(`Average Cost Per Session` ^ 0.1 ~ `avg_temperature` + `avg_relative_humidity`+ `avg_dew_point` + `avg_pressure_sea` + `avg_pressure_station` + `avg_visibility` + `avg_health_index` + `precipitation` + `avg_cloud_cover_4`+ COVID + Season + n_exercises - 1, data=daily_average_cost_per_hour)
 summary(fit.full.2)
-plot(fit.full.2$fitted.values, fit.full.2$residuals)
+plot(fit.full.2$fitted.values, fit.full.2$residuals, xlab="Fitted Values", ylab="Residuals")
 ```
 
 From the boxcox transformation plot, it can be deduced that the best transformation is to raise the power of the response variable to 0.1. The covariates that reject the null hypothesis of the t-test are: `avg_pressure_sea`, `avg_pressure_station`, `avg_health_index`, `precipitation`, `COVIDFALSE`, `COVIDTRUE`, `SeasonSummer` and `n_exercises`. Unlike the previous model without transformation of the response variable, `SeasonWinter` and `avg_cloud_cover_4` are no longer statistically significant.
