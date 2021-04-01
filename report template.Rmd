@@ -238,15 +238,15 @@ As a minor note, we also removed sessions that occurred on the ground as we want
 Lastly, to add on the external factors we joined our weather data to the processed data set. 
 We identified an initial set of weather factors that we believed could have a strong effect on the duration of a session. These were:
 
-* avg_relative_humidity
-* avg_dew_point
-* avg_pressure_sea
-* avg_pressure_station
-* avg_visibility
-* avg_health_index
-* precipitation
-* avg_cloud_cover_4
-* avg_temperature
+* `avg_relative_humidity`
+* `avg_dew_point`
+* `avg_pressure_sea`
+* `avg_pressure_station`
+* `avg_visibility`
+* `avg_health_index`
+* `precipitation`
+* `avg_cloud_cover_4`
+* `avg_temperature`
 
 
 Selecting the most popular exercise routine
@@ -283,7 +283,8 @@ duration.fit.1 = lm(Total_Duration ~
 ```
 
 **Analysis for Duration per Session linear regression model**
-It can be seen from the summary function that the p-values for all the covariates are high, despite having a high R-squared of 0.89. Having a high R-squared is good for a model since most of the variation in the response variable can be explained through the model. However, coupled with high p-values for all covariates renders the model useless as it implies that none of the covariates have a satistical significance in association with the total duration. Intuitively since we are multiple covariates from weather data, it was thought that multiple collinearities might be the cause of the high p-values. Hence, a correlation matrix for the weather data was calculated.
+
+It can be seen from the summary function that the p-values for all the covariates are high, despite having a high R-squared of 0.89. Having a high R-squared is good for a model since most of the variation in the response variable can be explained through the model. However, coupled with high p-values for all covariates renders the model useless as it implies that none of the covariates have a statistical significance in association with the total duration. Intuitively since we are multiple covariates from weather data, it was thought that multiple collinearities might be the cause of the high p-values. Hence, a correlation matrix for the weather data was calculated.
 
 **Correlation matrix for the weather covariates**
 Refer to *Figure 2*
