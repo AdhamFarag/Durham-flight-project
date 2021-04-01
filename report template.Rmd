@@ -9,6 +9,11 @@ knitr::opts_chunk$set( echo=FALSE, # hide code from document
                        warning=FALSE, # hide warnings 
                        message=FALSE) # hide messages 
 library(tidyverse)
+library(tidyverse)
+library(lubridate)
+library(ggpubr)
+library(rvest)
+library(broom)
 ```
 
 # STAA57 W21 Draft Report 
@@ -21,275 +26,17 @@ Link to RStudio Cloud shared project: https://rstudio.cloud/
 
 ## Introduction 
 
-(*Description of questions that are being investigated*)
-
 1. What are the trends in jet fuel costs over different time units (months/season)?
-  - For this question we use the web scrapped to see how fuel price changes during time and we try to see how these changes affect the cost of flight or session for the company
+    - For this question we use the web scrapped to see how fuel price changes during time and we try to see how these changes affect the cost of flight or session for the company
 
 2. What factors affect the duration of the sessions (model 1)
-  - we decide here to use a linear regression model to assess significant facotrs to how duration of session is affected
+    - we decide here to use a linear regression model to assess significant facotrs to how duration of session is affected
 
 3. What factors affect cost in a significant matter (model 2)
-  - we decide here to use a linear regression model to assess significant facotrs to how cost is affected
+    - we decide here to use a linear regression model to assess significant facotrs to how cost is affected
 
-4. What are the trends in demand over different time units (months/season/year)? 
- - we find how the demand in flight training changes and was season is more significant 
-
-5. Considering the previous questions, what are the estimated average aircraft operating over different time units (months/season)?  
-
-6. What are the total aircraft operating costs over month/season/year?  
-  - assuming we know total number of planes
-
-### Data 
+## Data 
 ```{r , results='hide', include=FALSE, warning=FALSE}
-source(file = "preprocess_data.R")
-```
-
-The external data that is used in this project were gathered from the following sources:
-  
-  - AVGAS: (NEW LINK)
-      - From preliminary research, it was found that C-172, C-150 and C-152 aircraft models only consume jet fuel (https://airshare.com/blog/cessna-172/#:~:text=and%20accessible%20training.-,What%20type%20of%20fuel%20does%20it%20use%3F,to%20power%20it%27s%20piston%20engine)
-      - The AVGAS historical data from BLANK is given by month, including the cost per gallon and percentage change
-
-  - Maintenance costs and repairs (https://cessna150152club.org/Costs):
-      - The annual operating cost of a cessna plane model for maintenance and repairs
-      - Based on this research,an assumed 15 dollar static cost per hour was added to each training session cost
-      - In addition, the fuel consumption per hour is estimated to be 6
-	
-  - Weather (https://climate.weather.gc.ca/historical_data/search_historic_data_e.html):
-		  - Historical weather data by day, including temp, precipitation, wind, etc.
-		  - Gathered data from Oshawa location
-
-## Analysis 
-
-### Question 1: What are the trends in jet fuel costs over different time units (months/season)?
-```{r}
-fuel_by_month <- cleaned_fuel_prices %>%
-  group_by(Month) %>%
-  summarise(Avg_Price_Per_Gallon = mean(Price)) %>%
-  ggplot(aes(x=Month, y=Avg_Price_Per_Gallon)) +
-  geom_bar(stat="identity", fill="darkblue") +
-  coord_cartesian(ylim=c(1.9, 2.2)) + 
-  ylab("Avg Price Per Gallon") +
-  labs(title="Fuel Price By Month ('16-'20)")
-
-fuel_by_season <- cleaned_fuel_prices %>%
-  group_by(Season) %>%
-  summarise(Avg_Price_Per_Gallon = mean(Price)) %>%
-  ggplot(aes(x=Season, y=Avg_Price_Per_Gallon)) +
-  geom_bar(stat="identity", fill="darkblue") +
-  coord_cartesian(ylim=c(1.9, 2.2)) + 
-  ylab("Avg Price Per Gallon") +
-  labs(title="Fuel Price By Season ('16-'20)")
-
-ggarrange(fuel_by_month, fuel_by_season)
-```
-From the monthly data on the left, we can see that in March and April the fuel price is significantly cheaper than any other month at a price around \$1.91/gallon. Following that, it steadily increases and peaks around \$2.15/gallon around October and December.
-
-For the seasonal data on the right, we can see that spring is significantly cheaper than any other season with a price at around \$1.94/gallon. On the other hand, fuel price is most expensive in the fall season with a price of about \$2.13/gallon
-
-```{r, echo = FALSE, warning=FALSE, message=FALSE, fig.height=2}
-clean_data_processed %>%
-  distinct(Year, Month, Day, .keep_all = T) %>%
-  mutate_if(is.numeric, replace_na, 0) %>%
-  ggplot(aes(x=Date, y=`Fuel Price Per Gallon`)) + 
-  geom_line(position="dodge", stat="identity", color="darkblue") +
-  xlab('Time') + ylab('Fuel Price Per Gallon') +
-  scale_x_date(breaks = 'year') +
-  labs(title='Fuel Price Per Gallon Time Series')
-```
-From the above graph, it can be seen there was a significant decrease in the jet fuel price per gallon, leading to lower aircraft operating costs. Therefore, we expect that the average and total estimated aircraft costs to be lower in 2020.
-
-### Question 3: What factors affect the duration of sessions?
-
-### How was the data prepared?
-For sessions that perform a particular exercise set, we suspect that their total duration should be around the average total duration for that same exercise set, unless there are external factors that affect it. Thus we can utilize a multiple linear regression model to show any significance for external factors against duration.
-
-To prepare the data for our model, we first have to group the data by exercise set. Noting that there are a lot of unique exercise combinations as we deemed that to have enough data for this analysis. 
-
-We also noted that we have to compute the total duration for a single session since a single session might have multiple training types resulting in multiple rows. Therefore we aggregated the rows to get the total duration for a particular session. To do this we can simply grouped by `Session_ID` and added the duration.
-
-As a minor note, we also removed sessions that occurred on the ground as we wanted our model to only measure duration with real planes against external factors.
-
-Lastly, to add on the external factors we joined our weather data to the processed data set. 
-We identified an initial  set of weather factors that we believed could have a strong effect on the duration of a session. These were:
-
-* avg_relative_humidity
-* avg_dew_point
-* avg_pressure_sea
-* avg_pressure_station
-* avg_visibility
-* avg_health_index
-* precipitation
-* avg_cloud_cover_4
-* avg_temperature
-
----
-
-Selecting the most popular exercise routine
-```{r}
-library(broom)
-data_exercises %>% 
-  group_by(Exercises) %>%
-  summarise(count=n()) %>%
-  arrange(desc(count)) %>%
-  slice(1:3) %>% 
-  knitr::kable( caption = "Most Frequest Group of Exercises")
-
-data_exercises_top_1 <- data_exercises %>%
-  filter(Exercises == '16,17,18,30')
-```
-
-Linear regression model for Duration per Session:
-```{r}
-duration.data = select(data_exercises_top_1, -min_windchill)
-# add covid to the dataset
-duration.fit.1 = lm(Total_Duration ~ 
-                        avg_relative_humidity +
-                        avg_dew_point +
-                        avg_pressure_sea +
-                        avg_pressure_station +
-                        avg_visibility +
-                        avg_health_index +
-                        avg_cloud_cover_4 + 
-                        avg_temperature + 
-                        precipitation + Season - 1, 
-                      data = duration.data)
-summary(duration.fit.1)
-
-```
-
-## Analysis for Duration per Session linear regression model
-
-It can be seen from the summary function that the p-values for all the covariates are high, despite having a high R-squared of 0.89. Having a high R-squared is good for a model since most of the variation in the response variable can be explained through the model. However coupled with high p-values for all covariates renders the model useless as it implies that none of the covariates have a satistical significance in association with the total duration. Intuitively since we are multiple covariates from weather data, it was thought that multiple collinearity might be the cause of the high p-values. Hence, a correlation matrix for the weather data was calculated.
-
-### Correlation matrix for the weather covariates
-```{r}
-na.omit(climate_data) %>% select(-c("date","min_windchill")) %>% cor()
-```
-
-From the correlation matrix, it can be seen that avg_pressure_sea and avg_pressure_station have a correlation of almost 1. avg_pressure_station was chosen to be removed as avg_pressure_sea measures are standardly used during aircraft take offs. Also, avg_dew_point and avg_temperature have a correlation of 0.9. From background research, it was found that dew_point is used as an indication of humidity and visibility, thus it was chosen to be removed from model since humidity and visibility are both given. A new linear regression model was fit disregarding these two covariates.
-
-```{r}
-# add covid to the dataset
-duration.fit.2 = lm(Total_Duration ~ 
-                        avg_relative_humidity +
-                        avg_pressure_sea +
-                        avg_visibility +
-                        avg_health_index +
-                        avg_cloud_cover_4 + 
-                        avg_temperature + 
-                        precipitation + Season - 1, 
-                      data = duration.data)
-summary(duration.fit.2)
-plot(duration.fit.2$residuals, duration.fit.2$fitted.values)
-```
-
-Unfortunately, despite attempting to remove variables with high correlation, the model still performed poorly with high p-values. A further look into the residual plot gave a clear indication that the linear regression model assumption of having a constant variation among residuals was being violated, giving a further indication that a linear model is not a good fit for the data. To remidy this a boxcox transformation was attempted to see if a power of the response variable would improve the linear model fit.
-
-```{r}
-library(MASS)
-boxcox(duration.fit.2)
-```
-
-Unfortunately, it seemed that the power of 1 is still one of the best, therefore putting the response variable to a different power wouldn't improve the model. Another attempt at taking log function of the response variable was undertaken instead.
-
-```{r}
-# add covid to the dataset
-duration.fit.2 = lm(log(Total_Duration) ~ 
-                        avg_relative_humidity +
-                        avg_pressure_sea +
-                        avg_visibility +
-                        avg_health_index +
-                        avg_cloud_cover_4 + 
-                        avg_temperature + 
-                        precipitation + Season - 1, 
-                      data = duration.data)
-summary(duration.fit.2)
-```
-
-However, the R-squared drastically decreased to 0.061 and the p-values were still high therefore the model is still insufficient.
-
-## Summary of Duration Per Session Model
-Overall, it seemed that using the linear regression model to fit a model over the data is not the appropriate model for this data due to the high p-values and thus the low statistical significance of the covariates in predicting the response variable. Our initial plan was to fit all duration vs all the possible covariates and choosing the most statiscally significant covariates to use in the following Cost per Session model. However, since there are none, we will be fitting the Cost per Session model using all the covariates.
-
-```{r}
-### Plan:
-#1. try to fit and analyze R squared and pvalues
-#2. high R squared and pvalues, therefore we suspected that it might be multi-collinearity of the data hence calculated a correlation matrix for the weather data (culprit)
-#3. there was high correlation between some values, which we decided to remove
-#4. model was still performing poorly
-#5. decided to take a power of the y and log of y to see if it will change the model, but it was the same
-#6. since we didnt find any significant factors that can be used, we will create a cost model with all covariates
-```
-
-How was the data prepared?
-
-The aircraft operating cost was calculated by calculating the aircraft operating cost per session, then finding the cost per session per hour. The cost was calculated using the equation below. 
-
-(insert equation)
-
-The aircraft operating cost equation uses duration, fuel price per gallon and an average number of gallons consumed per hour (6) as well as an estimated maintenance and repairs cost per hour (15). The cost for each session is calculated and then divided by the duration of the session to obtain the cost per hour per session. The data frame is then grouped by date and an average cost per hour is calculated for each date to smoothy join the data frame with the daily weather data. A linear regression model can then be built using this data frame.
-
-Why investigate this model?
-
-It is intuitive to think that the duration of a flight will be affected by the weather. Factors such as cloud coverage, wind and precipitation can affect an aircraft/pilot’s performance, thus the duration of flight/lesson. With an increase in flight duration comes an increase in maintenance and fuel costs. Therefore, we should expect that there will be weather factors in our data that can be significant predictors for the cost to a certain extent.
-
-It is also known that jet fuel price does change monthly/seasonally depending on seasonal travel, such as during Christmas and Summer. Therefore, we should expect that there are seasonal changes to the aircraft operating costs. Since seasonal changes in jet fuel costs are fairly obvious and weather data is closely correlated to seasonal weather changes, we expect the weather factors that we are using to be able to predict the aircraft operating cost. 
-
-In addition, since COVID-19 has dramatically impacted the Airline industry, which is closely related to jet fuel, we will also be investigating COVID-19 being a factor in predicting the aircraft operating costs.
-
-## Cost per session model
-
-```{r}
-clean_data_processed = clean_data_processed
-
-clean_data_processed %>% 
-  group_by(Session_ID) %>%
-  mutate(`Cost Per Session`=(Duration*`Fuel Price Per Gallon`*6 + 15*Duration), n_exercises=n()) %>%
-  distinct(Session_ID, .keep_all = T) %>%
-  group_by(Date) %>%
-  mutate(`Average Cost Per Session`= mean(`Cost Per Session`)) %>%
-  arrange(Date) -> daily_average_cost_per_hour
-
-fit.full = lm(`Average Cost Per Session` ~ `avg_temperature` + `avg_relative_humidity`+ `avg_dew_point` + `avg_pressure_sea` + `avg_pressure_station` + `avg_visibility` + `avg_health_index` + `precipitation` + `avg_cloud_cover_4`+ COVID + Season + n_exercises - 1, data=daily_average_cost_per_hour)
-summary(fit.full)
-```
-
-### Analysis of the Cost per Session Regression Model
-
-Looking at the summary for the cost model, it can be seen that there are many covariates with low p-values such as `SeasonSummer`, `SeasonWinter`, `avg_health_index`, `n_exercises`, `avg_pressure_sea`, `avg_pressure_station`, `precipitation`, and `avg_cloud_cover_4`. In addition, we observe that our cost model has a very high R-squared value so this shows our model fits the data well.
-
-```{r}
-plot(fit.full$fitted.values, fit.full$residuals)
-```
-
-Looking at the residual plots, we see that there is a pattern where the residuals are centered around 0 to form a oval shape. This tells us that our cost model can be improved by ways of transformations. So again, we utilized a boxcox transformation to improve the model.
-
-
-```{r}
-boxcox(fit.full)
-fit.full.2 = lm(`Average Cost Per Session` ^ 0.15 ~ `avg_temperature` + `avg_relative_humidity`+ `avg_dew_point` + `avg_pressure_sea` + `avg_pressure_station` + `avg_visibility` + `avg_health_index` + `precipitation` + `avg_cloud_cover_4`+ COVID + Season + n_exercises - 1, data=daily_average_cost_per_hour)
-summary(fit.full.2)
-plot(fit.full.2$fitted.values, fit.full.2$residuals)
-```
-
-Unfortunately, after running the boxcox transformation we still see a pattern in the residuals plot and so the quality of our model is about the same as before.
-
-## Summary 
-
-(*Recap of your findings and conclusions*)
-
-
-***  
-
-# Appendix
-## Import/Format Data 
-```
-library(tidyverse)
-library(lubridate)
-library(ggpubr)
-library(rvest)
 rm(list = ls())
 
 raw_data = NULL
@@ -359,6 +106,14 @@ tbls <- html_nodes(webpage, "table") %>%
   html_table(fill = TRUE)
 fuel_prices <- as.data.frame(tbls[2])
 colnames(fuel_prices) <- c("Month_Year", "Price","Change")
+
+cleaned_fuel_prices <- fuel_prices %>%
+  separate(Month_Year, c("Month", "Year"), " ") %>%
+  filter(Year >= 2016, Year <= 2020) %>%
+  mutate(Month = factor(Month, level=month.abb)) %>%
+  mutate(Season = getSeason(match(Month, month.abb))) %>%
+  mutate(Season = factor(Season, level=c("Spring", "Summer", "Fall", "Winter")))
+
 clean_data_processed$Month_Words <- month.abb[clean_data_processed$Month]
 clean_data_processed$Month_Year <- (str_c(clean_data_processed$Month_Words, clean_data_processed$Year, sep = " "))
 
@@ -369,29 +124,275 @@ colnames(clean_data_processed)[colnames(clean_data_processed) == 'Price'] <- 'Fu
 process_weather <- function(data) {
   data %>% 
     select(
-      'Date/Time', 
-      "Mean Temp (°C)",
-      "Total Precip (mm)",
-      "Total Rain (mm)", 
-      "Total Snow (cm)", 
-      "Spd of Max Gust (km/h)"
-    ) %>% 
-    mutate(wind = as.character(`Spd of Max Gust (km/h)`)) %>%
-    select(-c("Spd of Max Gust (km/h)")) %>%
-    mutate(wind = ifelse(wind == '<31', 31, wind))
+      "date",
+      "min_windchill",
+      "avg_relative_humidity",
+      "avg_dew_point",
+      "avg_pressure_sea",
+      "avg_pressure_station",
+      "avg_visibility",
+      "avg_health_index",
+      "precipitation",
+      "avg_cloud_cover_4",
+      "avg_temperature"
+    ) %>%
+    filter(date <"2021-01-01", date >= "2016-01-01")
 }
 
-climate_data_2016 <- read_csv('data/en_climate_daily_ON_6158410_2016_P1D.csv') %>% process_weather()
-climate_data_2017 <- read_csv('data/en_climate_daily_ON_6158410_2017_P1D.csv') %>% process_weather()
-climate_data_2018 <- read_csv('data/en_climate_daily_ON_6158410_2018_P1D.csv') %>% process_weather()
-climate_data_2019 <- read_csv('data/en_climate_daily_ON_6158410_2019_P1D.csv') %>% process_weather()
-climate_data_2020 <- read_csv('data/en_climate_daily_ON_6158410_2020_P1D.csv') %>% process_weather()
-climate_data <- bind_rows(climate_data_2016, 
-                          climate_data_2017, 
-                          climate_data_2018, 
-                          climate_data_2019, 
-                          climate_data_2020)
+climate_data <- read_csv('data/weatherstats_oshawa_daily.csv') %>% process_weather()
 
-clean_data_processed <- left_join(clean_data_processed, climate_data, by=c("Date" = "Date/Time"), copy=True)
+# ----- BEGIN NEW CODE -----
+data_exercises <- clean_data %>% 
+  filter(Aircraft != "GROUND") %>%
+  # remove trailing comma
+  mutate(Exercises = str_replace(Exercises, ",$", "")) %>% 
+  # remove leading comma
+  mutate(Exercises = str_replace(Exercises, "^,", "")) %>%
+  # remove duplicate comma
+  mutate(Exercises = str_replace(Exercises, ",,", ",")) %>%
+  group_by(Session_ID, Exercises, Year, Month, Day, Aircraft) %>% 
+  # can have multiple training types, therefore get total duration per session
+  summarise(Total_Duration = sum(Duration, na.rm = T)) %>%
+  ungroup() %>%
+  mutate(
+    Season = getSeason(Month), 
+    Date = make_date(Year, Month, Day),
+    Month_Words = month.abb[Month]
+  ) %>% 
+  mutate(Month_Year = (str_c(Month_Words, Year, sep = " "))) %>%
+  left_join(climate_data, by=c("Date" = "date")) %>%
+  left_join(fuel_prices, by="Month_Year") %>%
+  mutate(`Fuel Price Per Gallon` = Price) %>%
+  select(-c(Month_Year, Month_Words, Change, Price))
+# ----- END NEW CODE -----
+
+clean_data_processed <- left_join(clean_data_processed, climate_data, by=c("Date" = "date"), copy=True)
+```
+
+The external data that is used in this project were gathered from the following sources:
+  
+  - AVGAS: (NEW LINK)
+      - From preliminary research, it was found that C-172, C-150 and C-152 aircraft models only consume jet fuel (https://airshare.com/blog/cessna-172/#:~:text=and%20accessible%20training.-,What%20type%20of%20fuel%20does%20it%20use%3F,to%20power%20it%27s%20piston%20engine)
+      - The AVGAS historical data from BLANK is given by month, including the cost per gallon and percentage change
+  - Maintenance costs and repairs (https://cessna150152club.org/Costs):
+      - The annual operating cost of a cessna plane model for maintenance and repairs
+      - Based on this research,an assumed 15 dollar static cost per hour was added to each training session cost
+      - In addition, the fuel consumption per hour is estimated to be 6
+  - Weather (https://climate.weather.gc.ca/historical_data/search_historic_data_e.html):
+      - Historical weather data by day, including temp, precipitation, wind, etc.
+      - Gathered data from Oshawa location
+
+## Analysis 
+
+### Question 1: What are the trends in jet fuel costs over different time units (months/season)?
+```{r}
+fuel_by_month <- cleaned_fuel_prices %>%
+  group_by(Month) %>%
+  summarise(Avg_Price_Per_Gallon = mean(Price)) %>%
+  ggplot(aes(x=Month, y=Avg_Price_Per_Gallon)) +
+  geom_bar(stat="identity", fill="darkblue") +
+  coord_cartesian(ylim=c(1.9, 2.2)) + 
+  ylab("Avg Price Per Gallon") +
+  labs(title="Fuel Price By Month ('16-'20)")
+
+fuel_by_season <- cleaned_fuel_prices %>%
+  group_by(Season) %>%
+  summarise(Avg_Price_Per_Gallon = mean(Price)) %>%
+  ggplot(aes(x=Season, y=Avg_Price_Per_Gallon)) +
+  geom_bar(stat="identity", fill="darkblue") +
+  coord_cartesian(ylim=c(1.9, 2.2)) + 
+  ylab("Avg Price Per Gallon") +
+  labs(title="Fuel Price By Season ('16-'20)")
+
+ggarrange(fuel_by_month, fuel_by_season)
+```
+From the monthly data on the left, we can see that in March and April the fuel price is significantly cheaper than any other month at a price around \$1.91/gallon. Following that, it steadily increases and peaks around \$2.15/gallon around October and December.
+
+For the seasonal data on the right, we can see that spring is significantly cheaper than any other season with a price at around \$1.94/gallon. On the other hand, fuel price is most expensive in the fall season with a price of about \$2.13/gallon
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE, fig.height=2}
+clean_data_processed %>%
+  distinct(Year, Month, Day, .keep_all = T) %>%
+  mutate_if(is.numeric, replace_na, 0) %>%
+  ggplot(aes(x=Date, y=`Fuel Price Per Gallon`)) + 
+  geom_line(position="dodge", stat="identity", color="darkblue") +
+  xlab('Time') + ylab('Fuel Price Per Gallon') +
+  scale_x_date(breaks = 'year') +
+  labs(title='Fuel Price Per Gallon Time Series')
+```
+From the above graph, it can be seen there was a significant decrease in the jet fuel price per gallon, leading to lower aircraft operating costs. Therefore, we expect that the average and total estimated aircraft costs to be lower in 2020.
+
+### Question 2: What factors affect the duration of sessions?
+
+**How was the data prepared?**
+
+For sessions that perform a particular exercise set, we suspect that their total duration should be around the average total duration for that same exercise set, unless there are external factors that affect it. Thus we can utilize a multiple linear regression model to show any significance for external factors against duration.
+
+To prepare the data for our model, we first have to group the data by exercise set. Noting that there are a lot of unique exercise combinations as we deemed that to have enough data for this analysis. 
+
+We also noted that we have to compute the total duration for a single session since a single session might have multiple training types resulting in multiple rows. Therefore we aggregated the rows to get the total duration for a particular session. To do this we can simply grouped by `Session_ID` and added the duration.
+
+As a minor note, we also removed sessions that occurred on the ground as we wanted our model to only measure duration with real planes against external factors.
+
+Lastly, to add on the external factors we joined our weather data to the processed data set. 
+We identified an initial  set of weather factors that we believed could have a strong effect on the duration of a session. These were:
+
+* avg_relative_humidity
+* avg_dew_point
+* avg_pressure_sea
+* avg_pressure_station
+* avg_visibility
+* avg_health_index
+* precipitation
+* avg_cloud_cover_4
+* avg_temperature
+
+
+Selecting the most popular exercise routine
+```{r}
+data_exercises %>% 
+  group_by(Exercises) %>%
+  summarise(count=n()) %>%
+  arrange(desc(count)) %>%
+  slice(1:3) %>% 
+  knitr::kable( caption = "Most Frequest Group of Exercises")
+
+data_exercises_top_1 <- data_exercises %>%
+  filter(Exercises == '16,17,18,30')
+```
+
+Linear regression model for Duration per Session:
+```{r}
+duration.data = select(data_exercises_top_1, -min_windchill)
+# add covid to the dataset
+duration.fit.1 = lm(Total_Duration ~ 
+                        avg_relative_humidity +
+                        avg_dew_point +
+                        avg_pressure_sea +
+                        avg_pressure_station +
+                        avg_visibility +
+                        avg_health_index +
+                        avg_cloud_cover_4 + 
+                        avg_temperature + 
+                        precipitation + Season - 1, 
+                      data = duration.data)
+summary(duration.fit.1)
 
 ```
+
+**Analysis for Duration per Session linear regression model**
+It can be seen from the summary function that the p-values for all the covariates are high, despite having a high R-squared of 0.89. Having a high R-squared is good for a model since most of the variation in the response variable can be explained through the model. However coupled with high p-values for all covariates renders the model useless as it implies that none of the covariates have a satistical significance in association with the total duration. Intuitively since we are multiple covariates from weather data, it was thought that multiple collinearity might be the cause of the high p-values. Hence, a correlation matrix for the weather data was calculated.
+
+**Correlation matrix for the weather covariates**
+```{r}
+na.omit(climate_data) %>% select(-c("date","min_windchill")) %>% cor()
+```
+
+From the correlation matrix, it can be seen that avg_pressure_sea and avg_pressure_station have a correlation of almost 1. avg_pressure_station was chosen to be removed as avg_pressure_sea measures are standardly used during aircraft take offs. Also, avg_dew_point and avg_temperature have a correlation of 0.9. From background research, it was found that dew_point is used as an indication of humidity and visibility, thus it was chosen to be removed from model since humidity and visibility are both given. A new linear regression model was fit disregarding these two covariates.
+
+```{r}
+# add covid to the dataset
+duration.fit.2 = lm(Total_Duration ~ 
+                        avg_relative_humidity +
+                        avg_pressure_sea +
+                        avg_visibility +
+                        avg_health_index +
+                        avg_cloud_cover_4 + 
+                        avg_temperature + 
+                        precipitation + Season - 1, 
+                      data = duration.data)
+summary(duration.fit.2)
+plot(duration.fit.2$residuals, duration.fit.2$fitted.values)
+```
+
+Unfortunately, despite attempting to remove variables with high correlation, the model still performed poorly with high p-values. A further look into the residual plot gave a clear indication that the linear regression model assumption of having a constant variation among residuals was being violated, giving a further indication that a linear model is not a good fit for the data. To remidy this a boxcox transformation was attempted to see if a power of the response variable would improve the linear model fit.
+
+```{r}
+library(MASS)
+boxcox(duration.fit.2)
+```
+
+Unfortunately, it seemed that the power of 1 is still one of the best, therefore putting the response variable to a different power wouldn't improve the model. Another attempt at taking log function of the response variable was undertaken instead.
+
+```{r}
+# add covid to the dataset
+duration.fit.2 = lm(log(Total_Duration) ~ 
+                        avg_relative_humidity +
+                        avg_pressure_sea +
+                        avg_visibility +
+                        avg_health_index +
+                        avg_cloud_cover_4 + 
+                        avg_temperature + 
+                        precipitation + Season - 1, 
+                      data = duration.data)
+summary(duration.fit.2)
+```
+
+However, the R-squared drastically decreased to 0.061 and the p-values were still high therefore the model is still insufficient.
+
+**Summary of Duration Per Session Model**
+
+Overall, it seemed that using the linear regression model to fit a model over the data is not the appropriate model for this data due to the high p-values and thus the low statistical significance of the covariates in predicting the response variable. Our initial plan was to fit all duration vs all the possible covariates and choosing the most statiscally significant covariates to use in the following Cost per Session model. However, since there are none, we will be fitting the Cost per Session model using all the covariates.
+
+### Question 2: What factors affect cost in a significant matter?
+**How was the data prepared?**
+
+The aircraft operating cost was calculated by calculating the aircraft operating cost per session, then finding the cost per session per hour. The cost was calculated using the equation below. 
+
+(insert equation)
+
+The aircraft operating cost equation uses duration, fuel price per gallon and an average number of gallons consumed per hour (6) as well as an estimated maintenance and repairs cost per hour (15). The cost for each session is calculated and then divided by the duration of the session to obtain the cost per hour per session. The data frame is then grouped by date and an average cost per hour is calculated for each date to smoothy join the data frame with the daily weather data. A linear regression model can then be built using this data frame.
+
+Why investigate this model?
+
+It is intuitive to think that the duration of a flight will be affected by the weather. Factors such as cloud coverage, wind and precipitation can affect an aircraft/pilot’s performance, thus the duration of flight/lesson. With an increase in flight duration comes an increase in maintenance and fuel costs. Therefore, we should expect that there will be weather factors in our data that can be significant predictors for the cost to a certain extent.
+
+It is also known that jet fuel price does change monthly/seasonally depending on seasonal travel, such as during Christmas and Summer. Therefore, we should expect that there are seasonal changes to the aircraft operating costs. Since seasonal changes in jet fuel costs are fairly obvious and weather data is closely correlated to seasonal weather changes, we expect the weather factors that we are using to be able to predict the aircraft operating cost. 
+
+In addition, since COVID-19 has dramatically impacted the Airline industry, which is closely related to jet fuel, we will also be investigating COVID-19 being a factor in predicting the aircraft operating costs.
+
+
+```{r}
+clean_data_processed = clean_data_processed
+
+clean_data_processed %>% 
+  group_by(Session_ID) %>%
+  mutate(`Cost Per Session`=(Duration*`Fuel Price Per Gallon`*6 + 15*Duration), n_exercises=n()) %>%
+  distinct(Session_ID, .keep_all = T) %>%
+  group_by(Date) %>%
+  mutate(`Average Cost Per Session`= mean(`Cost Per Session`)) %>%
+  arrange(Date) -> daily_average_cost_per_hour
+
+fit.full = lm(`Average Cost Per Session` ~ `avg_temperature` + `avg_relative_humidity`+ `avg_dew_point` + `avg_pressure_sea` + `avg_pressure_station` + `avg_visibility` + `avg_health_index` + `precipitation` + `avg_cloud_cover_4`+ COVID + Season + n_exercises - 1, data=daily_average_cost_per_hour)
+summary(fit.full)
+```
+
+**Analysis of the Cost per Session Regression Model**
+
+Looking at the summary for the cost model, it can be seen that there are many covariates with low p-values such as `SeasonSummer`, `SeasonWinter`, `avg_health_index`, `n_exercises`, `avg_pressure_sea`, `avg_pressure_station`, `precipitation`, and `avg_cloud_cover_4`. In addition, we observe that our cost model has a very high R-squared value so this shows our model fits the data well.
+
+```{r}
+plot(fit.full$fitted.values, fit.full$residuals)
+```
+
+Looking at the residual plots, we see that there is a pattern where the residuals are centered around 0 to form a oval shape. This tells us that our cost model can be improved by ways of transformations. So again, we utilized a boxcox transformation to improve the model.
+
+
+```{r}
+boxcox(fit.full)
+fit.full.2 = lm(`Average Cost Per Session` ^ 0.15 ~ `avg_temperature` + `avg_relative_humidity`+ `avg_dew_point` + `avg_pressure_sea` + `avg_pressure_station` + `avg_visibility` + `avg_health_index` + `precipitation` + `avg_cloud_cover_4`+ COVID + Season + n_exercises - 1, data=daily_average_cost_per_hour)
+summary(fit.full.2)
+plot(fit.full.2$fitted.values, fit.full.2$residuals)
+```
+
+Unfortunately, after running the boxcox transformation we still see a pattern in the residuals plot and so the quality of our model is about the same as before.
+
+## Summary 
+
+(*Recap of your findings and conclusions*)
+
+
+***  
+
+# Appendix
+
