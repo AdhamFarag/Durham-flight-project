@@ -163,6 +163,7 @@ data_exercises <- clean_data %>%
   left_join(climate_data, by=c("Date" = "date")) %>%
   left_join(fuel_prices, by="Month_Year") %>%
   mutate(`Fuel Price Per Gallon` = Price) %>%
+  mutate(COVID = Year >= 2020) %>%
   select(-c(Month_Year, Month_Words, Change, Price))
 # ----- END NEW CODE -----
 
@@ -274,6 +275,7 @@ duration.fit.1 = lm(Total_Duration ~
                         avg_health_index +
                         avg_cloud_cover_4 + 
                         avg_temperature + 
+                        COVID +
                         precipitation + Season - 1, 
                       data = duration.data)
 summary(duration.fit.1)
@@ -299,6 +301,7 @@ duration.fit.2 = lm(Total_Duration ~
                         avg_health_index +
                         avg_cloud_cover_4 + 
                         avg_temperature + 
+                        COVID +
                         precipitation + Season - 1, 
                       data = duration.data)
 summary(duration.fit.2)
