@@ -347,6 +347,7 @@ The aircraft operating cost was calculated by calculating the aircraft operating
 
 The aircraft operating cost equation uses duration, fuel price per gallon and an average number of gallons consumed per hour (6) as well as an estimated maintenance and repairs cost per hour (15). The cost for each session is calculated and then divided by the duration of the session to obtain the cost per hour per session. The data frame is then grouped by date and an average cost per hour is calculated for each date to smoothy join the data frame with the daily weather data. A linear regression model can then be built using this data frame.
 
+Since the cost of each session is dependent on the duration, we observed that session duration can vary due to the exercises being performed as well as the quantity of exercises. Some sessions might have more exercises and thus have a higher cost. Due to the lack of information of expected individual exercise duration, we assumed that each exercise will have the same duration. Since the cost of a session is related to the exercises being performed, we added a column representing the number of exercises in a session and added that to our model.
 
 ```{r}
 clean_data_processed %>% 
