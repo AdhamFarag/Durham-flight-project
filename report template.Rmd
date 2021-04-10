@@ -9,6 +9,7 @@ knitr::opts_chunk$set( echo=FALSE, # hide code from document
                        warning=FALSE, # hide warnings 
                        message=FALSE) # hide messages 
 library(lubridate)
+library(stringi)
 library(ggpubr)
 library(rvest)
 library(broom)
@@ -90,12 +91,13 @@ getSeason <- function(month) {
 clean_data_processed = clean_data %>% 
   distinct( Session_ID, .keep_all = T) %>% 
   # split the exercises string into a "list" column w str_split()
-  mutate( Exercises = str_split(Exercises, ",") ) %>%  
+  mutate( Exercises = str_split(Exercises, ",")) %>%  
   # and expand list contents into multiple rows w/ unnest()
   unnest(Exercises) %>%
   # remove invalid exercises
   mutate(Exercises = as.integer(Exercises)) %>%
   filter(Exercises >= 1 & Exercises <= 30) %>%
+  group_by(Session_ID) %>%
   distinct_all() %>%
   mutate(
     Season = getSeason(Month), 
@@ -158,6 +160,7 @@ data_exercises <- clean_data %>%
   summarise(Total_Duration = sum(Duration, na.rm = T)) %>%
   ungroup() %>%
   mutate(
+    N_Exercises = stri_count(Exercises, fixed = ",")+1,
     Season = getSeason(Month), 
     Date = make_date(Year, Month, Day),
     Month_Words = month.abb[Month]
@@ -246,104 +249,37 @@ Lastly, to add on the external factors the weather data was joined with the proc
 We identified an initial set of weather factors that were deemed to have a strong effect on the duration of a session. It should be mentioned that the min_windchill column from the weather data was removed since it contained many null values, practically removing around 70% of our data when including it in the linear regression model. The relevant factors were:
 
 * `avg_relative_humidity`
-* `avg_dew_point`
 * `avg_pressure_sea`
-* `avg_pressure_station`
 * `avg_visibility`
 * `avg_health_index`
 * `precipitation`
 * `avg_cloud_cover_4`
 * `avg_temperature`
 
-Selecting the most popular exercise routine
-```{r}
-data_exercises %>% 
-  group_by(Exercises) %>%
-  summarise(count=n()) %>%
-  arrange(desc(count)) %>%
-  slice(1:3) %>% 
-  knitr::kable( caption = "Most Frequest Group of Exercises")
-
-data_exercises_top_1 <- data_exercises %>%
-  filter(Exercises == '16,17,18,30')
-```
 
 Linear regression model for Duration per Session:
 
-Refer to *Figure 1*
 ```{r}
-duration.data = select(data_exercises_top_1, -min_windchill)
 # add covid to the dataset
-duration.fit.1 = lm(Total_Duration ~ 
+duration.fit = lm(Total_Duration ~ 
                         avg_relative_humidity +
                         avg_dew_point +
                         avg_pressure_sea +
-                        avg_pressure_station +
                         avg_visibility +
                         avg_health_index +
                         avg_cloud_cover_4 + 
                         avg_temperature + 
+                        N_Exercises +
                         COVID +
                         precipitation + Season - 1, 
-                      data = duration.data)
+                      data = data_exercises)
+summary(duration.fit)
 ```
 
 **Analysis for Duration per Session linear regression model**
 
 It can be seen from the summary function that the p-values for all the covariates are high except for Summer, despite having a high R-squared of 0.89. Having a high R-squared is good for a model since most of the variation in the response variable can be explained through the model. However, coupled with high p-values for almost all covariates renders the model useless as it implies that almost none of the covariates have a satistical significance in association with the total duration. Intuitively since there are multiple covariates from weather data, there might be multiple collinearities causing the high p-values. Hence, a correlation matrix for the weather data was calculated.
 
-**Correlation matrix for the weather covariates**
-Refer to *Figure 2*
-```{r}
-weather_factors = na.omit(climate_data) %>% select(-c("date","min_windchill"))
-```
-
-From the correlation matrix, it can be seen that avg_pressure_sea and avg_pressure_station have a correlation of almost 1. avg_pressure_station was chosen to be removed as avg_pressure_sea measures are used as a standard during aircraft takeoffs. Also, avg_dew_point and avg_temperature have a correlation of 0.9. From background research, it was found that dew_point is used as an indication of humidity and visibility, thus it was chosen to be removed from the model since humidity and visibility are both given. A new linear regression model was fit disregarding these two covariates.
-
-Refer to *Figure 3*
-
-```{r}
-duration.fit.2 = lm(Total_Duration ~ 
-                        avg_relative_humidity +
-                        avg_pressure_sea +
-                        avg_visibility +
-                        avg_health_index +
-                        avg_cloud_cover_4 + 
-                        avg_temperature + 
-                        COVID +
-                        precipitation + Season - 1, 
-                      data = duration.data)
-
-plot(duration.fit.2$fitted.values, duration.fit.2$residuals, xlab="Fitted Values", ylab="Residuals")
-```
-
-Unfortunately, despite attempting to remove variables with high correlation, the model still performed poorly with high p-values. A further look into the residual plot gave a clear indication that the linear regression model assumption of having a constant variation among residuals was being violated, giving a further indication that a linear model is not a good fit for the data. To remedy this, a boxcox transformation was attempted to see if a power of the response variable could improve the linear model fit.
-
-```{r}
-boxcox(duration.fit.2, xlab="Power of Y")
-```
-
-Unfortunately, it seemed that the power of 1 is almost the best transformation, therefore putting the response variable to a different power would not improve the model. Another attempt at taking the log function of the response variable was undertaken instead.
-
-```{r}
-duration.fit.3 = lm(log(Total_Duration) ~ 
-                        avg_relative_humidity +
-                        avg_pressure_sea +
-                        avg_visibility +
-                        avg_health_index +
-                        avg_cloud_cover_4 + 
-                        avg_temperature + 
-                        precipitation + COVID + Season - 1, 
-                      data = duration.data)
-```
-
-Refer to *Figure 4*
-
-However, the R-squared drastically decreased to 0.061 and the p-values were still high therefore this model is still insufficient and can be safely discarded.
-
-**Summary of Duration Per Session Model**
-
-Overall, it seemed that using the linear regression model to fit a model over the data is not the appropriate model for this data due to the high p-values and thus due to the low statistical significance of the majority of the covariates in predicting the response variable. Our initial plan was to fit all duration vs all the possible covariates and choosing the most statistically significant covariates to use in the following Cost per Session model. However, since Summer is the only one, we will be fitting the Cost per Session model using all the covariates.
 
 ### Question 3: What factors affect cost in a significant matter?
 **How was the data prepared?**
@@ -367,28 +303,6 @@ clean_data_processed %>%
 
 fit.full = lm(`Average Cost Per Session` ~ `avg_temperature` + `avg_relative_humidity`+ `avg_dew_point` + `avg_pressure_sea` + `avg_pressure_station` + `avg_visibility` + `avg_health_index` + `precipitation` + `avg_cloud_cover_4`+ COVID + Season + n_exercises - 1, data=daily_average_cost_per_hour)
 ```
-
-Refer to *Figure 5*
-
-**Analysis of the Cost per Session Regression Model**
-
-Looking at the summary for the cost model, there are covariates with p-values below 0.05: `SeasonSummer`, `SeasonWinter`, `avg_health_index`, `n_exercises`, `avg_pressure_sea`, `avg_pressure_station`, `precipitation`, and `avg_cloud_cover_4`. This indicates that there is a statistical significance for these covariates when predicting the Cost per Session for a day, as they all were able to reject the null hypothesis for the t-test with an alpha of 0.05. Therefore, we can conclude that these covariates are associated with the Cost per Session with 95% confidence. In addition, the Cost per Session model has a very high R-squared value of 0.98 so this shows the model fits the data well and can explain 98% of the variation in the Cost per Session for each day. Before interpreting the fitted linear regression equation, a residual analysis is undertaken.
-
-```{r}
-plot(fit.full$fitted.values, fit.full$residuals, xlab="Fitted Values", ylab="Residuals")
-```
-
-Analyzing the residual plot, the residuals are not randomly scattered, rather they are centered around 0 forming an oval shape. This conveys that the Cost per Session model can be improved by transformations of the response and covariates as the errors do not follow a constant variance. So again, a boxcox transformation was utilized to attempt to improve the model.
-
-```{r}
-boxcox(fit.full, xlab="Power of Y")
-fit.full.2 = lm(`Average Cost Per Session` ^ 0.1 ~ `avg_temperature` + `avg_relative_humidity`+ `avg_dew_point` + `avg_pressure_sea` + `avg_pressure_station` + `avg_visibility` + `avg_health_index` + `precipitation` + `avg_cloud_cover_4`+ COVID + Season + n_exercises - 1, data=daily_average_cost_per_hour)
-plot(fit.full.2$fitted.values, fit.full.2$residuals, xlab="Fitted Values", ylab="Residuals")
-```
-
-Refer to *Figure 6*
-
-From the boxcox transformation plot, it can be deduced that the best transformation is to raise the power of the response variable to 0.1. The covariates that reject the null hypothesis of the t-test with an alpha of 0.05 are: `avg_pressure_sea`, `avg_pressure_station`, `avg_health_index`, `precipitation`, `COVIDFALSE`, `COVIDTRUE`, `SeasonSummer` and `n_exercises`. Unlike the previous model without transformation of the response variable, `SeasonWinter` and `avg_cloud_cover_4` are no longer statistically significant but COVID-19 is now statistically significant. Thus, these covariates are associated with the Cost per Session with 95% confidence. However, even after running the boxcox transformation we still see a non-random pattern in the residuals plot and so the quality of our model is about the same as before in terms of residual plot analysis. For the sake of interpretation simplicity, the first model is chosen as the linear regression fit.
 
 ### Interpreting the coefficients statistically significant covariates
 
@@ -421,30 +335,3 @@ Overall, the Duration per Session model was not as useful as anticipated due to 
 ***  
 
 # Appendix
-*Figure 1: Summary of duration LR model (All factors)*
-```{r}
-summary(duration.fit.1)
-```
-
-*Figure 2: Weather factor correlation matrix*
-```{r}
-weather_factors %>% cor()
-```
-
-*Figure 3: Summary of duration LR model (Filtered factors)*
-```{r}
-summary(duration.fit.2)
-```
-
-*Figure 4: Summary plot of duration LR model (Log)*
-```{r}
-summary(duration.fit.3)
-```
-*Figure 5: Summary of cost LR model (Original)*
-```{r}
-summary(fit.full)
-```
-*Figure 6: Summary of cost LR model (BoxCox)*
-```{r}
-summary(fit.full.2)
-```
