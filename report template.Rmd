@@ -297,8 +297,39 @@ duration.fit = lm(Total_Duration ~
                         avg_temperature + 
                         N_Exercises +
                         COVID +
+                        Exercises_1 +
+                        Exercises_2 +
+                        Exercises_3 +
+                        Exercises_4 +
+                        Exercises_5 +
+                        Exercises_6 +
+                        Exercises_7 +
+                        Exercises_8 +
+                        Exercises_9 +
+                        Exercises_10 +
+                        Exercises_11 +
+                        Exercises_12 +
+                        Exercises_13 +
+                        Exercises_14 +
+                        Exercises_15 +
+                        Exercises_16 +
+                        Exercises_17 +
+                        Exercises_18 +
+                        Exercises_19 +
+                        Exercises_20 +
+                        Exercises_21 +
+                        Exercises_22 +
+                        Exercises_23 +
+                        Exercises_24 +
+                        Exercises_29 +
+                        Exercises_30 +
                         precipitation + Season - 1, 
                       data = train)
+glance(duration.fit)
+
+tidy(duration.fit) %>%
+  filter(p.value < 0.05)
+
 summary(duration.fit)
 # Testing LM model
 test %>% 
@@ -342,9 +373,41 @@ cost.fit = lm(`Average Cost Per Session` ~
                         avg_temperature + 
                         N_Exercises +
                         COVID +
+                        Exercises_1 +
+                        Exercises_2 +
+                        Exercises_3 +
+                        Exercises_4 +
+                        Exercises_5 +
+                        Exercises_6 +
+                        Exercises_7 +
+                        Exercises_8 +
+                        Exercises_9 +
+                        Exercises_10 +
+                        Exercises_11 +
+                        Exercises_12 +
+                        Exercises_13 +
+                        Exercises_14 +
+                        Exercises_15 +
+                        Exercises_16 +
+                        Exercises_17 +
+                        Exercises_18 +
+                        Exercises_19 +
+                        Exercises_20 +
+                        Exercises_21 +
+                        Exercises_22 +
+                        Exercises_23 +
+                        Exercises_24 +
+                        Exercises_29 +
+                        Exercises_30 +
                         precipitation + Season - 1, 
                       data = cost_per_session)
 summary(cost.fit)
+
+glance(cost.fit)
+
+tidy(cost.fit) %>%
+  filter(p.value < 0.05)
+
 # clean_data_processed %>% 
 #   group_by(Session_ID) %>%
 #   mutate(`Cost Per Session`=(Duration*`Fuel Price Per Gallon`*6 + 15*Duration), n_exercises=n()) %>%
