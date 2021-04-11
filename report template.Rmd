@@ -9,6 +9,7 @@ knitr::opts_chunk$set( echo=FALSE, # hide code from document
                        warning=FALSE, # hide warnings 
                        message=FALSE) # hide messages 
 library(lubridate)
+library(modelr)
 library(stringi)
 library(ggpubr)
 library(rvest)
@@ -130,8 +131,8 @@ process_weather <- function(data) {
   data %>% 
     select(
       "date",
-      "min_windchill",
       "avg_relative_humidity",
+      "avg_hourly_wind_speed",
       "avg_dew_point",
       "avg_pressure_sea",
       "avg_pressure_station",
@@ -220,7 +221,7 @@ For the seasonal data on the right, we can see that spring is significantly chea
 
 Therefore it should be anticipated for the Cost per Session to change respectively during these noted months and seasons.
 
-```{r, echo = FALSE, warning=FALSE, message=FALSE, fig.height=2}
+```{r, echo = FALSE, warning=FALSE, message=FALSE, fig.height=3}
 clean_data_processed %>%
   distinct(Year, Month, Day, .keep_all = T) %>%
   mutate_if(is.numeric, replace_na, 0) %>%
@@ -246,9 +247,10 @@ As a minor note, ground sessions were removed as the model's purpose is to measu
 
 Lastly, to add on the external factors the weather data was joined with the processed data set.
 
-We identified an initial set of weather factors that were deemed to have a strong effect on the duration of a session. It should be mentioned that the min_windchill column from the weather data was removed since it contained many null values, practically removing around 70% of our data when including it in the linear regression model. The relevant factors were:
+We identified an initial set of weather factors that were deemed to have a strong effect on the duration of a session.
 
 * `avg_relative_humidity`
+* `avg_dew_point`
 * `avg_pressure_sea`
 * `avg_visibility`
 * `avg_health_index`
@@ -260,10 +262,14 @@ We identified an initial set of weather factors that were deemed to have a stron
 Linear regression model for Duration per Session:
 
 ```{r}
-# add covid to the dataset
+set.seed(123)
+train <- data_exercises %>% sample_frac(.80)
+test  <- anti_join(data_exercises, train, by = 'Session_ID')
+# Training LM model
 duration.fit = lm(Total_Duration ~ 
                         avg_relative_humidity +
                         avg_dew_point +
+                        avg_hourly_wind_speed +
                         avg_pressure_sea +
                         avg_visibility +
                         avg_health_index +
@@ -272,13 +278,18 @@ duration.fit = lm(Total_Duration ~
                         N_Exercises +
                         COVID +
                         precipitation + Season - 1, 
-                      data = data_exercises)
+                      data = train)
 summary(duration.fit)
+# Testing LM model
+test %>% 
+  add_predictions(duration.fit, var="pred") %>% 
+  drop_na(Total_Duration, pred) %>%
+  summarise(difference = sum((`Total_Duration` - `pred`)^2)/n())
 ```
 
 **Analysis for Duration per Session linear regression model**
 
-It can be seen from the summary function that the p-values for all the covariates are high except for Summer, despite having a high R-squared of 0.89. Having a high R-squared is good for a model since most of the variation in the response variable can be explained through the model. However, coupled with high p-values for almost all covariates renders the model useless as it implies that almost none of the covariates have a satistical significance in association with the total duration. Intuitively since there are multiple covariates from weather data, there might be multiple collinearities causing the high p-values. Hence, a correlation matrix for the weather data was calculated.
+It can be seen om the summary function that the p-values for all the covariates are high except for Summer, despite having a high R-squared of 0.89. Having a high R-squared is good for a model since most of the variation in the response variable can be explained through the model. However, coupled with high p-values for almost all covariates renders the model useless as it implies that almost none of the covariates have a satistical significance in association with the total duration. Intuitively since there are multiple covariates from weather data, there might be multiple collinearities causing the high p-values. Hence, a correlation matrix for the weather data was calculated.
 
 
 ### Question 3: What factors affect cost in a significant matter?
@@ -293,15 +304,36 @@ The aircraft operating cost equation uses duration, fuel price per gallon, and a
 Since the cost of each session is dependent on the duration, it was observed that session duration can vary due to the exercises being performed as well as the number of exercises. Some sessions might have more exercises and thus have a higher cost. Due to the lack of information on the expected individual exercise duration, it was assumed that each exercise will have the same duration. Since the cost of a session is related to the exercises being performed, we added a column representing the number of exercises in a session and added that to our model.
 
 ```{r}
-clean_data_processed %>% 
+# NOTE that this is using the same data as was used for duration. And is showing
+# cost per session rather than daily avg of cost per session.
+data_exercises %>% 
   group_by(Session_ID) %>%
-  mutate(`Cost Per Session`=(Duration*`Fuel Price Per Gallon`*6 + 15*Duration), n_exercises=n()) %>%
-  distinct(Session_ID, .keep_all = T) %>%
-  group_by(Date) %>%
+  mutate(`Cost Per Session`=(Total_Duration*`Fuel Price Per Gallon`*6 + 15*Total_Duration)) %>%
+  #distinct(Session_ID, .keep_all = T) %>%
   mutate(`Average Cost Per Session`= mean(`Cost Per Session`)) %>%
-  arrange(Date) -> daily_average_cost_per_hour
-
-fit.full = lm(`Average Cost Per Session` ~ `avg_temperature` + `avg_relative_humidity`+ `avg_dew_point` + `avg_pressure_sea` + `avg_pressure_station` + `avg_visibility` + `avg_health_index` + `precipitation` + `avg_cloud_cover_4`+ COVID + Season + n_exercises - 1, data=daily_average_cost_per_hour)
+  arrange(Date) -> cost_per_session
+cost.fit = lm(`Average Cost Per Session` ~ 
+                        avg_dew_point +
+                        avg_hourly_wind_speed +
+                        avg_pressure_sea +
+                        avg_visibility +
+                        avg_health_index +
+                        avg_cloud_cover_4 + 
+                        avg_temperature + 
+                        N_Exercises +
+                        COVID +
+                        precipitation + Season - 1, 
+                      data = cost_per_session)
+summary(cost.fit)
+# clean_data_processed %>% 
+#   group_by(Session_ID) %>%
+#   mutate(`Cost Per Session`=(Duration*`Fuel Price Per Gallon`*6 + 15*Duration), n_exercises=n()) %>%
+#   distinct(Session_ID, .keep_all = T) %>%
+#   group_by(Date) %>%
+#   mutate(`Average Cost Per Session`= mean(`Cost Per Session`)) %>%
+#   arrange(Date) -> daily_average_cost_per_hour
+# 
+# fit.full = lm(`Average Cost Per Session` ~ `avg_temperature` + `avg_relative_humidity`+ `avg_dew_point` + `avg_pressure_sea` + `avg_pressure_station` + `avg_visibility` + `avg_health_index` + `precipitation` + `avg_cloud_cover_4`+ COVID + Season + n_exercises - 1, data=daily_average_cost_per_hour)
 ```
 
 ### Interpreting the coefficients statistically significant covariates
