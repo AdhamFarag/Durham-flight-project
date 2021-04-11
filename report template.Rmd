@@ -84,6 +84,34 @@ raw_data %>%
   select( Instructor_ID, Student_ID, Session_ID, Year, Month, Day, 
           Aircraft, Duration, Training_Type, Exercises, Licence ) -> clean_data
 
+# filter and clean exercises
+clean_data <- clean_data %>%
+  filter(Aircraft != "GROUND") %>%
+  filter(!is.na(Exercises)) %>%
+  # not sure what exercise 40 is, so we will remove it
+  filter(!str_detect(Exercises, "40")) %>%
+  # fix typos
+  mutate(Exercises = str_replace(Exercises, "`7", "17")) %>%
+  mutate(Exercises = str_replace(Exercises, "112", "12")) %>%
+  mutate(Exercises = str_replace(Exercises, "81", "18")) %>%
+  mutate(Exercises = str_replace(Exercises, "55", "5")) %>%
+  mutate(Exercises = str_replace(Exercises, "2.4", "2,4")) %>%
+  mutate(Exercises = str_replace(Exercises, "16 17", "16,17")) %>%
+  mutate(Exercises = str_replace(Exercises, "67", "6,7")) %>%
+  mutate(Exercises = str_replace(Exercises, "1821", "18,21")) %>%
+  mutate(Exercises = str_replace(Exercises, "1314", "13,14")) %>%
+  mutate(Exercises = str_replace(Exercises, "1316", "13,16")) %>%
+  mutate(Exercises = str_replace(Exercises, "1617", "16,17")) %>%
+  mutate(Exercises = str_replace(Exercises, "18.30", "18,30")) %>%
+  mutate(Exercises = str_replace(Exercises, "34", "3,4")) %>%
+  mutate(Exercises = str_replace(Exercises, "89", "8,9")) %>%
+  # remove trailing comma
+  mutate(Exercises = str_replace(Exercises, ",$", "")) %>% 
+  # remove leading comma
+  mutate(Exercises = str_replace(Exercises, "^,", "")) %>%
+  # remove duplicate comma
+  mutate(Exercises = str_replace(Exercises, ",,", ","))
+
 getSeason <- function(month) {
   ifelse(month >= 3 & month <= 5, "Spring",
          ifelse(month >= 6 & month <= 8, "Summer",
@@ -146,33 +174,6 @@ climate_data <- read_csv('data/weatherstats_oshawa_daily.csv') %>% process_weath
 
 # ----- BEGIN NEW CODE -----
 data_exercises <- clean_data %>% 
-  filter(Aircraft != "GROUND") %>%
-  filter(!is.na(Exercises)) %>%
-  # not sure what exercise 40 is, so we will remove it
-  filter(!str_detect(Exercises, "40")) %>%
-  # fix typos
-  mutate(Exercises = str_replace(Exercises, "`7", "17")) %>%
-  mutate(Exercises = str_replace(Exercises, "112", "12")) %>%
-  mutate(Exercises = str_replace(Exercises, "81", "18")) %>%
-  mutate(Exercises = str_replace(Exercises, "55", "5")) %>%
-  mutate(Exercises = str_replace(Exercises, "2.4", "2,4")) %>%
-  mutate(Exercises = str_replace(Exercises, "16 17", "16,17")) %>%
-  mutate(Exercises = str_replace(Exercises, "67", "6,7")) %>%
-  mutate(Exercises = str_replace(Exercises, "1821", "18,21")) %>%
-  mutate(Exercises = str_replace(Exercises, "1314", "13,14")) %>%
-  mutate(Exercises = str_replace(Exercises, "1316", "13,16")) %>%
-  mutate(Exercises = str_replace(Exercises, "1617", "16,17")) %>%
-  mutate(Exercises = str_replace(Exercises, "18.30", "18,30")) %>%
-  mutate(Exercises = str_replace(Exercises, "34", "3,4")) %>%
-  mutate(Exercises = str_replace(Exercises, "89", "8,9")) %>%
-  # remove trailing comma
-  mutate(Exercises = str_replace(Exercises, ",$", "")) %>% 
-  # remove leading comma
-  mutate(Exercises = str_replace(Exercises, "^,", "")) %>%
-  # remove duplicate comma
-  mutate(Exercises = str_replace(Exercises, ",,", ",")) %>%
-  # add dummy variables for all of the exercises
-  dummy_cols(split=',', select_columns=c("Exercises")) %>%
   group_by(Session_ID, Exercises, Year, Month, Day, Aircraft) %>% 
   # can have multiple training types, therefore get total duration per session
   summarise(Total_Duration = sum(Duration, na.rm = T)) %>%
@@ -188,6 +189,8 @@ data_exercises <- clean_data %>%
   left_join(fuel_prices, by="Month_Year") %>%
   mutate(`Fuel Price Per Gallon` = Price) %>%
   mutate(COVID = Year >= 2020) %>%
+  # add dummy variables for all of the exercises
+  dummy_cols(split=',', select_columns=c("Exercises")) %>%
   select(-c(Month_Year, Month_Words, Price))
 # ----- END NEW CODE -----
 
