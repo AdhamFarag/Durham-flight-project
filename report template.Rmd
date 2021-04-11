@@ -171,8 +171,6 @@ climate_data <- read_csv('data/weatherstats_oshawa_daily.csv') %>% process_weath
 
 # ----- BEGIN NEW CODE -----
 data_exercises <- clean_data %>% 
-  # add dummy variables for all of the exercises
-  dummy_cols(split=',', select_columns=c("Exercises")) %>%
   group_by(Session_ID, Exercises, Year, Month, Day, Aircraft) %>% 
   # can have multiple training types, therefore get total duration per session
   summarise(Total_Duration = sum(Duration, na.rm = T)) %>%
@@ -187,6 +185,8 @@ data_exercises <- clean_data %>%
   left_join(fuel_prices, by="Month_Year") %>%
   mutate(`Fuel Price Per Gallon` = Price) %>%
   mutate(COVID = Year >= 2020) %>%
+  # add dummy variables for all of the exercises
+  dummy_cols(split=',', select_columns=c("Exercises")) %>%
   select(-c(Month_Year, Month_Words, Price))
 # ----- END NEW CODE -----
 
