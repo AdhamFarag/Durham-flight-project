@@ -16,6 +16,7 @@ library(rvest)
 library(broom)
 library(MASS)
 library(tidyverse)
+library(fastDummies)
 ```
 
 # STAA57 W21 Draft Report 
@@ -106,12 +107,8 @@ clean_data_processed = clean_data %>%
     COVID = Year >= 2020
   )
 
-# reading in the fuel per gallon price
-webpage <- read_html("https://www.indexmundi.com/commodities/?commodity=jet-fuel&months=240&currency=cad")
-tbls <- html_nodes(webpage, "table") %>%
-  html_table(fill = TRUE)
-fuel_prices <- as.data.frame(tbls[2])
-colnames(fuel_prices) <- c("Month_Year", "Price","Change")
+gasoline_price <-read_csv("data/18100001.csv")
+fuel_prices<-gasoline_price%>%filter(GEO=="Toronto, Ontario")%>%filter(str_detect(REF_DATE,"(2016|2017|2018|2019|2020|2021)-\\d{2}"))%>%group_by(REF_DATE)%>%summarise(avg_price=mean(VALUE)*3.78541/100)%>%separate(REF_DATE, c("Year", "Month"), "-")%>%mutate(Month = month.abb[as.numeric(Month)])%>%mutate(Month_Year=str_c(Month,Year,sep=" "))%>%mutate(Price=avg_price)%>%select(-c("Month","Year","avg_price"))
 
 cleaned_fuel_prices <- fuel_prices %>%
   separate(Month_Year, c("Month", "Year"), " ") %>%
@@ -124,7 +121,7 @@ clean_data_processed$Month_Words <- month.abb[clean_data_processed$Month]
 clean_data_processed$Month_Year <- (str_c(clean_data_processed$Month_Words, clean_data_processed$Year, sep = " "))
 
 clean_data_processed <- left_join(clean_data_processed,fuel_prices,by="Month_Year",copy = TRUE)
-clean_data_processed <- select(clean_data_processed, -c("Month_Year","Change","Month_Words"))
+clean_data_processed <- select(clean_data_processed, -c("Month_Year","Month_Words"))
 colnames(clean_data_processed)[colnames(clean_data_processed) == 'Price'] <- 'Fuel Price Per Gallon'
 
 process_weather <- function(data) {
@@ -150,12 +147,32 @@ climate_data <- read_csv('data/weatherstats_oshawa_daily.csv') %>% process_weath
 # ----- BEGIN NEW CODE -----
 data_exercises <- clean_data %>% 
   filter(Aircraft != "GROUND") %>%
+  filter(!is.na(Exercises)) %>%
+  # not sure what exercise 40 is, so we will remove it
+  filter(!str_detect(Exercises, "40")) %>%
+  # fix typos
+  mutate(Exercises = str_replace(Exercises, "`7", "17")) %>%
+  mutate(Exercises = str_replace(Exercises, "112", "12")) %>%
+  mutate(Exercises = str_replace(Exercises, "81", "18")) %>%
+  mutate(Exercises = str_replace(Exercises, "55", "5")) %>%
+  mutate(Exercises = str_replace(Exercises, "2.4", "2,4")) %>%
+  mutate(Exercises = str_replace(Exercises, "16 17", "16,17")) %>%
+  mutate(Exercises = str_replace(Exercises, "67", "6,7")) %>%
+  mutate(Exercises = str_replace(Exercises, "1821", "18,21")) %>%
+  mutate(Exercises = str_replace(Exercises, "1314", "13,14")) %>%
+  mutate(Exercises = str_replace(Exercises, "1316", "13,16")) %>%
+  mutate(Exercises = str_replace(Exercises, "1617", "16,17")) %>%
+  mutate(Exercises = str_replace(Exercises, "18.30", "18,30")) %>%
+  mutate(Exercises = str_replace(Exercises, "34", "3,4")) %>%
+  mutate(Exercises = str_replace(Exercises, "89", "8,9")) %>%
   # remove trailing comma
   mutate(Exercises = str_replace(Exercises, ",$", "")) %>% 
   # remove leading comma
   mutate(Exercises = str_replace(Exercises, "^,", "")) %>%
   # remove duplicate comma
   mutate(Exercises = str_replace(Exercises, ",,", ",")) %>%
+  # add dummy variables for all of the exercises
+  dummy_cols(split=',', select_columns=c("Exercises")) %>%
   group_by(Session_ID, Exercises, Year, Month, Day, Aircraft) %>% 
   # can have multiple training types, therefore get total duration per session
   summarise(Total_Duration = sum(Duration, na.rm = T)) %>%
@@ -171,7 +188,7 @@ data_exercises <- clean_data %>%
   left_join(fuel_prices, by="Month_Year") %>%
   mutate(`Fuel Price Per Gallon` = Price) %>%
   mutate(COVID = Year >= 2020) %>%
-  select(-c(Month_Year, Month_Words, Change, Price))
+  select(-c(Month_Year, Month_Words, Price))
 # ----- END NEW CODE -----
 
 clean_data_processed <- left_join(clean_data_processed, climate_data, by=c("Date" = "date"), copy=True)
