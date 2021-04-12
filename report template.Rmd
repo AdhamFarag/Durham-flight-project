@@ -29,18 +29,24 @@ Link to RStudio Cloud shared project: https://rstudio.cloud/spaces/115177/projec
 
 ## Introduction 
 
-The topic of this paper is to investigate the aircraft operating cost of DFC, particularly the Cost per Session. There are two main factors that affect the aircraft operating cost which are jet fuel price and the duration of the session.It is intuitive to think that the duration of a flight will be affected by the weather. Factors such as cloud coverage, wind and precipitation can affect an aircraft/pilot’s performance, thus the duration of flight/lesson. With an increase in flight duration comes an increase in maintenance and fuel costs. Therefore, we should expect that there will be weather factors in our data that can be significant predictors for the aircraft operating cost to a certain extent. It is also known that jet fuel price does change monthly/seasonally depending on seasonal travel, such as during Christmas and Summer. Therefore, we should expect that there are seasonal changes to the aircraft operating costs. Since seasonal changes in jet fuel costs are fairly obvious and weather data is closely correlated to seasonal weather changes, we expect the weather factors that we are using to be able to predict the aircraft operating cost. In addition, since COVID-19 has dramatically impacted the Airline industry, which is closely related to fuel, we will also be investigating COVID-19 being a factor in predicting the aircraft operating costs.
+The topic of this paper is to investigate the aircraft operating cost of DFC, particularly the Cost per Session. There are two main factors that affect the aircraft operating cost which are fuel price (we are using gasoline) and the duration of the session. It is intuitive to think that the duration of a flight will be affected by the weather. Factors such as cloud coverage, wind and precipitation can affect an aircraft/pilot’s performance, thus the duration of flight/lesson. With an increase in flight duration comes an increase in maintenance and fuel costs. Therefore, we should expect that there will be weather factors in our data that can be significant predictors for the aircraft operating cost to a certain extent. It is also known that fuel price does change monthly/seasonally depending on seasonal travel, such as during Christmas and Summer. Therefore, we should expect that there are seasonal changes to the aircraft operating costs. Since seasonal changes in fuel costs are fairly obvious and weather data is closely correlated to seasonal weather changes, we expect the weather factors that we are using to be able to predict the aircraft operating cost. In addition, since COVID-19 has dramatically impacted the Airline industry, which is closely related to fuel, we will also be investigating COVID-19 being a factor in predicting the aircraft operating costs.
 
 ### Questions:
 1. What are the trends in fuel costs over different time units (daily/seasonly)?
     - For this question, web scrapping was used to see how fuel price changes over time and attempted to see how these changes affect the Cost per Session for DFC.
     - A monthly analysis was considered, however due to the time period, it would result in a relatively hard to interpret analysis of the fuel price fluctuations that can also be deduced using a seasonal time period analysis.
 
-2. What factors affect the duration of the sessions? 
-    - A linear regression model was used to assess the significant covariates associated with the duration of the sessions. Since duration can act as a predictor of cost, the statiscally significant covariates from this model will be used  to in the next linear regression model.
+For the next two questions we will use Linear Regression models. For context:
+
+This is a method to predict numerical values like cost/duration given new input data (exercise plan, season, weather, fuel, etc.). The model is essentially a math equation generated using the given historical data plus external factors we add (e.g. weather, fuel cost).
+
+From this model, we can also see which factors have a significant effect on what we are trying to predict.
+
+2. What factors affect the duration of the sessions?
+    - We will use a linear regression model to assess the significant factors associated with the duration of the sessions.
 
 3. What factors affect cost in a significant matter?
-    - Another linear regression model is used in a similar fashion as the method to answer the question above. It will be using the covariates that were deemed statistically significant in the previous model. 
+    - We will repeat the same process as the previous question, however predicting cost instead of duration.
 
 ## Data 
 ```{r , results='hide', include=FALSE, warning=FALSE}
@@ -200,10 +206,10 @@ clean_data_processed <- left_join(clean_data_processed, climate_data, by=c("Date
 
 The external data that is used in this project were gathered from the following sources:
   
-  - Fuel (https://www.indexmundi.com/commodities/?commodity=jet-fuel&months=240&currency=cad)
-      - Historical fuel data by month, including the cost/gallon and %change
+  - Fuel (https://l.messenger.com/l.php?u=https%3A%2F%2Fopen.canada.ca%2Fdata%2Fen%2Fdataset%2Fcbb9182b-df94-4ae6-8a85-b75a34b2f990&h=AT3GmvCK1hAexZ-pV_IDDM9GMSK2XOPfAqWndwBaot2jm-6wGlR9msaGSCBsbdNU2UjfrX6D6oehi521ykUBvDcAONQM_fPJhspKMYYRdIVfocbzjhQpsz9Uz8tkd2QP08OR6g)
+      - Historical fuel data by month, including the cost/gallon
       - Assuming that all planes used in the flight school use the same fuel
-      - From preliminary research, it was found that C-172, C-150 and C-152 aircraft models only consume jet fuel 
+      - From preliminary research, it was found that C-172, C-150 and C-152 aircraft models only consume AVGas and gasoline. We decided to use gasoline data for our analysis. 
   - Maintenance costs and repairs (https://cessna150152club.org/Costs):
       - The annual operating cost of a Cessna plane model for maintenance and repairs
       - Based on this research, an assumed 15 dollars static cost per hour was added to each training session cost
@@ -213,7 +219,7 @@ The external data that is used in this project were gathered from the following 
       - Gathered data from Oshawa location
 
 ## Analysis 
-### Question 1: What are the trends in jet fuel costs over different time units (daily/season)?
+### Question 1: What are the trends in fuel costs over different time units (daily/season)?
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE, fig.height=3}
 clean_data_processed %>%
@@ -244,26 +250,25 @@ The above graph shows the average price per season from 2016 to 2020. There is n
 
 **How was the data prepared?**
 
-For sessions that perform a standard set of exercises, it's intuitive to anticipate that their total duration should be around the average total duration for that same set of exercises unless there are external factors that affect it. Thus a multiple linear regression model can be utilized to show any significance for external factors against duration.
+For this model, we combined the given flight data with Oshawa weather data.
+In particular, we referenced https://silicium.dk/fsx/FSWeb/LearningCenter/TheWorld/WeatherAviationWeatherBasics.htm, 
+and identified a set of weather factors that were deemed to have a strong effect on the duration of a session.
 
-To prepare the data for our model, the data was grouped by standard sets of exercises. Noting that there are a lot of unique exercise combinations, the most repeated set of exercises were chosen as it had enough data for analysis.
+* `Avg relative humidity`
+* `Avg dew point`
+* `Avg sea pressure`
+* `Avg visibility`
+* `Avg health index` (air quality)
+* `Precipitation`
+* `Avg cloud cover `
+* `Avg temperature`
 
-Since a single session might have multiple training types resulting in multiple rows, the total duration for a single session was computed by adding the duration of the rows with the same Session_ID using grouping.
+In total, our factors consist of the selected weather factors, the exercises conducted, the season, and whether or not the session took place in 2020 (Covid year).
 
-As a minor note, ground sessions were removed as the model's purpose is to measure duration per session with aircrafts against external factors.
+We also spit our data into two sets at an 8:2 ratio:
 
-Lastly, to add on the external factors the weather data was joined with the processed data set.
-
-We identified an initial set of weather factors that were deemed to have a strong effect on the duration of a session.
-
-* `avg_relative_humidity`
-* `avg_dew_point`
-* `avg_pressure_sea`
-* `avg_visibility`
-* `avg_health_index`
-* `precipitation`
-* `avg_cloud_cover_4`
-* `avg_temperature`
+  1. Training (80% of data) set is used to build the equation and determine the significant factors.
+  2. Test (20% of data) set is used to test accuracy of model.
 
 
 Linear regression model for Duration per Session:
@@ -274,15 +279,12 @@ duration.train <- data_exercises %>% sample_frac(.80)
 duration.test  <- data_exercises %>% setdiff(duration.train)
 # Training LM model
 duration.fit = lm(Total_Duration ~ 
-                        avg_relative_humidity +
                         avg_dew_point +
-                        avg_hourly_wind_speed +
                         avg_pressure_sea +
                         avg_visibility +
                         avg_health_index +
                         avg_cloud_cover_4 + 
                         avg_temperature + 
-                        N_Exercises +
                         COVID +
                         Exercises_1 +
                         Exercises_2 +
@@ -312,26 +314,45 @@ duration.fit = lm(Total_Duration ~
                         Exercises_30 +
                         precipitation + Season - 1, 
                       data = duration.train)
-glance(duration.fit) %>%
-  knitr::kable( caption = "Model Results")
 
 tidy(duration.fit) %>%
   filter(p.value < 0.05) %>%
+  mutate(minutes = 60*estimate) %>%
+  select(term, minutes) %>%
   knitr::kable( caption = "Most Significant Factors")
 
-summary(duration.fit)
-# Testing LM model
 duration.test %>% 
   add_predictions(duration.fit, var="pred") %>% 
   drop_na(Total_Duration, pred) %>%
-  summarise(mae = sum(abs(`Total_Duration` - `pred`))/n()) %>%
-  knitr::kable( caption = "MAE")
+  summarise(minutes = 60 * sum(abs(`Total_Duration` - `pred`))/n()) %>%
+  knitr::kable( caption = "MAE") ->
+  duration.mae
 ```
 
 **Analysis for Duration per Session linear regression model**
 
-It can be seen om the summary function that the p-values for all the covariates are high except for Summer, despite having a high R-squared of 0.89. Having a high R-squared is good for a model since most of the variation in the response variable can be explained through the model. However, coupled with high p-values for almost all covariates renders the model useless as it implies that almost none of the covariates have a satistical significance in association with the total duration. Intuitively since there are multiple covariates from weather data, there might be multiple collinearities causing the high p-values. Hence, a correlation matrix for the weather data was calculated.
+From our model, we can see that the most significant factors for predicting duration are:
 
+* Exercises_12: Stall
+* Exercises_16: Take-Off
+* Exercises_19: First Solo
+* Exercises_23: Pilot Navigation
+* Exercises_24: Instrument Flying
+* Exercises_30: Radio Communications
+* precipitation: How much avg precipitation received that day
+* SeasonSummer: Whether or not the session took place in the summer
+
+The model predicts that on average:
+
+* Having Exercise 19 (first solo) decreases the duration by 44min
+* Every mm of precipitation decreases the duration by 0.4min
+* The session being in the summer increases the duration by 4.7min
+* etc.
+For the remaining factors refer to *Figure 1* in the appendix.
+
+Our model has an R^2 value of 0.88, meaning that about 88% of the changes in the duration can be explained by changes in our factors.
+To test the model's accuracy, we tried predicting the duration by inputting the test data, and compared the results to the actual duration of the test sessions. We then took the average of the differences (Mean Absolute Error or MAE) and got an average error of ~14min.
+This means that using our model to predict new data will result in a value that's off by 14min on average.
 
 ### Question 3: What factors affect cost in a significant matter?
 **How was the data prepared?**
@@ -361,13 +382,11 @@ cost.train <- cost_per_session %>% sample_frac(.8)
 cost.test <- cost_per_session %>% setdiff(cost.train)
 cost.fit = lm(`Cost Per Session` ~ 
                         avg_dew_point +
-                        avg_hourly_wind_speed +
                         avg_pressure_sea +
                         avg_visibility +
                         avg_health_index +
                         avg_cloud_cover_4 + 
-                        avg_temperature + 
-                        N_Exercises +
+                        avg_temperature +
                         COVID +
                         Exercises_1 +
                         Exercises_2 +
@@ -423,9 +442,9 @@ cost.test %>%
 # fit.full = lm(`Average Cost Per Session` ~ `avg_temperature` + `avg_relative_humidity`+ `avg_dew_point` + `avg_pressure_sea` + `avg_pressure_station` + `avg_visibility` + `avg_health_index` + `precipitation` + `avg_cloud_cover_4`+ COVID + Season + n_exercises - 1, data=daily_average_cost_per_hour)
 ```
 
-### Interpreting the coefficients statistically significant covariates
+### Interpreting the coefficients statistically significant factors
 
-The analysis below for the COVID-19 covariates assumes that every other variable is held constant:
+The analysis below for the COVID-19 factors assumes that every other variable is held constant:
 
 * `SeasonSummer` - during summer the cost increases by 1 dollar per session
 
@@ -445,12 +464,19 @@ The analysis below for the COVID-19 covariates assumes that every other variable
 
 An interesting observation is that as the number of exercises increasing is associated with the cost decreasing - this does not mean causation, rather just association, meaning that increasing the number of exercises doesn't result in a decrease in cost. A possible explanation is that there can be a lot of easy exercises for beginner sessions that don't take long to complete therefore lowering the duration of the session thus lowering the cost per session.
 
-Unlike what we anticipated from question 1 that Fall would have higher cost, it turned out to be lower than the usual cost as the cofficient for the fall was used as the base state for the equation and the other seasons such as Summer and Winter had a statistically significant coefficients. It was during the Winter that the price per session increases by 2.26 dollars as anticipated to have a spike around December in the jet fuel analysis. Unintuitively, this model shows that COVID-19 had no effect on the price per session due to its high p-value. However, it is important to keep in mind that association  does not mean causation, therefore this does not rule out that COVID-19 cannot affect the price per session.
+Unlike what we anticipated from question 1 that Fall would have higher cost, it turned out to be lower than the usual cost as the coefficient for the fall was used as the base state for the equation and the other seasons such as Summer and Winter had a statistically significant coefficients. It was during the Winter that the price per session increases by 2.26 dollars as anticipated to have a spike around December in the fuel cost analysis. Unintuitively, this model shows that COVID-19 had no effect on the price per session due to its high p-value. However, it is important to keep in mind that association  does not mean causation, therefore this does not rule out that COVID-19 cannot affect the price per session.
 
 ## Summary 
 
-Overall, the Duration per Session model was not as useful as anticipated due to linear regression not being a good fit for the data, and that can be the result of choosing the incorrect model type. Nonetheless, the second model did indeed provide some useful insight on how the Cost per Session changes depending on the statistically significant covariates, despite going against some anticipated patterns found using the jet fuel analysis. It is important to note that the residual plot for the Cost per Session did not appear to follow a random pattern thus there can be a better model for the data.
+Overall, the Duration per Session model was not as useful as anticipated due to linear regression not being a good fit for the data, and that can be the result of choosing the incorrect model type. Nonetheless, the second model did indeed provide some useful insight on how the Cost per Session changes depending on the statistically significant factors, despite going against some anticipated patterns found using the fuel analysis. It is important to note that the residual plot for the Cost per Session did not appear to follow a random pattern thus there can be a better model for the data.
 
 ***  
 
 # Appendix
+*Figure 1*
+```{r}
+tidy(duration.fit) %>%
+  mutate(minutes = 60*estimate) %>%
+  select(term, minutes) %>%
+  knitr::kable( caption = "Most Significant Factors")
+```
