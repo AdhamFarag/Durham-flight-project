@@ -29,11 +29,12 @@ Link to RStudio Cloud shared project: https://rstudio.cloud/spaces/115177/projec
 
 ## Introduction 
 
-The topic of this paper is to investigate the aircraft operating cost of DFC, particularly the Cost per Session. There are two main factors that affect the aircraft operating cost which are jet fuel price and the duration of the session.It is intuitive to think that the duration of a flight will be affected by the weather. Factors such as cloud coverage, wind and precipitation can affect an aircraft/pilot’s performance, thus the duration of flight/lesson. With an increase in flight duration comes an increase in maintenance and fuel costs. Therefore, we should expect that there will be weather factors in our data that can be significant predictors for the aircraft operating cost to a certain extent. It is also known that jet fuel price does change monthly/seasonally depending on seasonal travel, such as during Christmas and Summer. Therefore, we should expect that there are seasonal changes to the aircraft operating costs. Since seasonal changes in jet fuel costs are fairly obvious and weather data is closely correlated to seasonal weather changes, we expect the weather factors that we are using to be able to predict the aircraft operating cost. In addition, since COVID-19 has dramatically impacted the Airline industry, which is closely related to jet fuel, we will also be investigating COVID-19 being a factor in predicting the aircraft operating costs.
+The topic of this paper is to investigate the aircraft operating cost of DFC, particularly the Cost per Session. There are two main factors that affect the aircraft operating cost which are jet fuel price and the duration of the session.It is intuitive to think that the duration of a flight will be affected by the weather. Factors such as cloud coverage, wind and precipitation can affect an aircraft/pilot’s performance, thus the duration of flight/lesson. With an increase in flight duration comes an increase in maintenance and fuel costs. Therefore, we should expect that there will be weather factors in our data that can be significant predictors for the aircraft operating cost to a certain extent. It is also known that jet fuel price does change monthly/seasonally depending on seasonal travel, such as during Christmas and Summer. Therefore, we should expect that there are seasonal changes to the aircraft operating costs. Since seasonal changes in jet fuel costs are fairly obvious and weather data is closely correlated to seasonal weather changes, we expect the weather factors that we are using to be able to predict the aircraft operating cost. In addition, since COVID-19 has dramatically impacted the Airline industry, which is closely related to fuel, we will also be investigating COVID-19 being a factor in predicting the aircraft operating costs.
 
 ### Questions:
-1. What are the trends in jet fuel costs over different time units (months/season)?
-    - For this question, web scrapping was used to see how fuel price changes over time and attempted to see how these changes affect the Cost per Session for DFC
+1. What are the trends in fuel costs over different time units (daily/seasonly)?
+    - For this question, web scrapping was used to see how fuel price changes over time and attempted to see how these changes affect the Cost per Session for DFC.
+    - A monthly analysis was considered, however due to the time period, it would result in a relatively hard to interpret analysis of the fuel price fluctuations that can also be deduced using a seasonal time period analysis.
 
 2. What factors affect the duration of the sessions? 
     - A linear regression model was used to assess the significant covariates associated with the duration of the sessions. Since duration can act as a predictor of cost, the statiscally significant covariates from this model will be used  to in the next linear regression model.
@@ -212,34 +213,7 @@ The external data that is used in this project were gathered from the following 
       - Gathered data from Oshawa location
 
 ## Analysis 
-
-### Question 1: What are the trends in jet fuel costs over different time units (months/season)?
-```{r}
-fuel_by_month <- cleaned_fuel_prices %>%
-  group_by(Month) %>%
-  summarise(Avg_Price_Per_Gallon = mean(Price)) %>%
-  ggplot(aes(x=Month, y=Avg_Price_Per_Gallon)) +
-  geom_bar(stat="identity", fill="darkblue") +
-  coord_cartesian(ylim=c(1.9, 2.2)) + 
-  ylab("Avg Price Per Gallon") +
-  labs(title="Fuel Price By Month ('16-'20)")
-
-fuel_by_season <- cleaned_fuel_prices %>%
-  group_by(Season) %>%
-  summarise(Avg_Price_Per_Gallon = mean(Price)) %>%
-  ggplot(aes(x=Season, y=Avg_Price_Per_Gallon)) +
-  geom_bar(stat="identity", fill="darkblue") +
-  coord_cartesian(ylim=c(1.9, 2.2)) + 
-  ylab("Avg Price Per Gallon") +
-  labs(title="Fuel Price By Season ('16-'20)")
-
-ggarrange(fuel_by_month, fuel_by_season)
-```
-From the monthly data on the left, we can see that in March and April the fuel price is significantly cheaper than any other month at a price around \$1.91/gallon. Following that, it steadily increases and peaks around \$2.15/gallon around October and December.
-
-For the seasonal data on the right, we can see that spring is significantly cheaper than any other season with a price at around \$1.94/gallon. On the other hand, fuel price is most expensive in the fall season with a price of about \$2.13/gallon.
-
-Therefore it should be anticipated for the Cost per Session to change respectively during these noted months and seasons.
+### Question 1: What are the trends in jet fuel costs over different time units (daily/season)?
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE, fig.height=3}
 clean_data_processed %>%
@@ -251,7 +225,20 @@ clean_data_processed %>%
   scale_x_date(breaks = 'year') +
   labs(title='Fuel Price Per Gallon Time Series')
 ```
-From the above graph, it can be seen there was a drastic drop in the jet fuel price per gallon in 2020, leading to lower aircraft operating costs. Therefore, we expect that the Cost per Session to be lower during 2020, i.e. during the pandemic.
+From the above graph, it can be seen there was a drop in the fuel price per gallon in 2020, leading to lower aircraft operating costs. Therefore, we expect that the Cost per Session to be lower during 2020, i.e. during the pandemic.
+
+```{r}
+fuel_by_season <- cleaned_fuel_prices %>%
+  group_by(Season, Year) %>%
+  summarise(Avg_Price_Per_Gallon = mean(Price)) %>%
+  ggplot(aes(x=Season, y=Avg_Price_Per_Gallon, fill=Year)) +
+  geom_bar(stat="identity", position="dodge") +
+  ylab("Avg Price Per Gallon") +
+  labs(title="Fuel Price By Season ('16-'20)")
+fuel_by_season
+```
+
+The above graph shows the average price per season from 2016 to 2020. There is no clear pattern to the fluctuations of the gasoline prices over the season. It is interesting to note that the gasoline prices during the pandemic are not at its lowest as for almost all the seasons 2016 had the lowest average price per gallon, therefore that is an indicator that the pandemic may not be an important factor when analysing the Cost per Session model.
 
 ### Question 2: What factors affect the duration of sessions?
 
