@@ -283,8 +283,8 @@ Linear regression model for Duration per Session:
 
 ```{r}
 set.seed(123)
-train <- data_exercises %>% sample_frac(.80)
-test  <- anti_join(data_exercises, train, by = 'Session_ID')
+duration.train <- data_exercises %>% sample_frac(.80)
+duration.test  <- data_exercises %>% setdiff(duration.train)
 # Training LM model
 duration.fit = lm(Total_Duration ~ 
                         avg_relative_humidity +
@@ -324,18 +324,21 @@ duration.fit = lm(Total_Duration ~
                         Exercises_29 +
                         Exercises_30 +
                         precipitation + Season - 1, 
-                      data = train)
-glance(duration.fit)
+                      data = duration.train)
+glance(duration.fit) %>%
+  knitr::kable( caption = "Model Results")
 
 tidy(duration.fit) %>%
-  filter(p.value < 0.05)
+  filter(p.value < 0.05) %>%
+  knitr::kable( caption = "Most Significant Factors")
 
 summary(duration.fit)
 # Testing LM model
-test %>% 
+duration.test %>% 
   add_predictions(duration.fit, var="pred") %>% 
   drop_na(Total_Duration, pred) %>%
-  summarise(difference = sum((`Total_Duration` - `pred`)^2)/n())
+  summarise(mae = sum(abs(`Total_Duration` - `pred`))/n()) %>%
+  knitr::kable( caption = "MAE")
 ```
 
 **Analysis for Duration per Session linear regression model**
@@ -355,15 +358,21 @@ The aircraft operating cost equation uses duration, fuel price per gallon, and a
 Since the cost of each session is dependent on the duration, it was observed that session duration can vary due to the exercises being performed as well as the number of exercises. Some sessions might have more exercises and thus have a higher cost. Due to the lack of information on the expected individual exercise duration, it was assumed that each exercise will have the same duration. Since the cost of a session is related to the exercises being performed, we added a column representing the number of exercises in a session and added that to our model.
 
 ```{r}
-# NOTE that this is using the same data as was used for duration. And is showing
+# NOTE that this is using the same data as was used for duration. It is showing
 # cost per session rather than daily avg of cost per session.
 data_exercises %>% 
   group_by(Session_ID) %>%
   mutate(`Cost Per Session`=(Total_Duration*`Fuel Price Per Gallon`*6 + 15*Total_Duration)) %>%
   #distinct(Session_ID, .keep_all = T) %>%
   mutate(`Average Cost Per Session`= mean(`Cost Per Session`)) %>%
-  arrange(Date) -> cost_per_session
-cost.fit = lm(`Average Cost Per Session` ~ 
+  arrange(Date) %>%
+  tibble -> cost_per_session
+
+# Training data
+set.seed(123)
+cost.train <- cost_per_session %>% sample_frac(.8)
+cost.test <- cost_per_session %>% setdiff(cost.train)
+cost.fit = lm(`Cost Per Session` ~ 
                         avg_dew_point +
                         avg_hourly_wind_speed +
                         avg_pressure_sea +
@@ -400,14 +409,22 @@ cost.fit = lm(`Average Cost Per Session` ~
                         Exercises_29 +
                         Exercises_30 +
                         precipitation + Season - 1, 
-                      data = cost_per_session)
+                      data = cost.train)
 summary(cost.fit)
 
-glance(cost.fit)
+glance(cost.fit) %>%
+  knitr::kable( caption = "Model Results")
 
 tidy(cost.fit) %>%
-  filter(p.value < 0.05)
+  filter(p.value < 0.05) %>%
+  knitr::kable( caption = "Most Significant Factors")
 
+# Testing LM model
+cost.test %>% 
+  add_predictions(cost.fit, var="pred") %>%
+  drop_na(`Cost Per Session`, pred) %>%
+  summarise(mae = sum(abs(`Cost Per Session` - `pred`))/n()) %>%
+  knitr::kable( caption = "MAE")
 # clean_data_processed %>% 
 #   group_by(Session_ID) %>%
 #   mutate(`Cost Per Session`=(Duration*`Fuel Price Per Gallon`*6 + 15*Duration), n_exercises=n()) %>%
