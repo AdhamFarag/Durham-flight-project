@@ -329,7 +329,7 @@ duration.test %>%
   duration.mae
 ```
 
-**Analysis for Duration per Session linear regression model**
+**Analysis for Duration per Session Model**
 
 From our model, we can see that the most significant factors for predicting duration are:
 
@@ -348,30 +348,29 @@ The model predicts that on average:
 * Every mm of precipitation decreases the duration by 0.4min
 * The session being in the summer increases the duration by 4.7min
 * etc.
-For the remaining factors refer to *Figure 1* in the appendix.
+For the remaining factors refer to *Table 3* in the appendix.
 
-Our model has an R^2 value of 0.88, meaning that about 88% of the changes in the duration can be explained by changes in our factors.
+Our model has an R^2 value of 0.88 (*Table 4*), meaning that about 88% of the changes in the duration can be explained by changes in our factors.
 To test the model's accuracy, we tried predicting the duration by inputting the test data, and compared the results to the actual duration of the test sessions. We then took the average of the differences (Mean Absolute Error or MAE) and got an average error of ~14min.
 This means that using our model to predict new data will result in a value that's off by 14min on average.
 
 ### Question 3: What factors affect cost in a significant matter?
 **How was the data prepared?**
 
+We repeated the same steps as was done in question 2, however we added an extra column for the estimated cost per session.
+
 The aircraft operating cost per session was calculated using the equation below:
 
 `CostPerSession = (Duration * (FuelPricePerGallon*GallonsPerHr + OperatingCostPerHr))`
 
-The aircraft operating cost equation uses duration, fuel price per gallon, and an average number of gallons consumed per hour (6) as well as an estimated maintenance and repairs cost per hour (15). After the Cost per Session column has been calculated, the data frame is then grouped by date and an Average Cost per Session is calculated for each date to smoothly join the data frame with the daily weather data. A linear regression model can then be built using this data frame.
+The aircraft operating cost equation uses duration, fuel price per gallon, and an average number of gallons consumed per hour (6) as well as an estimated maintenance and repairs cost per hour (15).
 
-Since the cost of each session is dependent on the duration, it was observed that session duration can vary due to the exercises being performed as well as the number of exercises. Some sessions might have more exercises and thus have a higher cost. Due to the lack of information on the expected individual exercise duration, it was assumed that each exercise will have the same duration. Since the cost of a session is related to the exercises being performed, we added a column representing the number of exercises in a session and added that to our model.
 
 ```{r}
 # NOTE that this is using the same data as was used for duration. It is showing
 # cost per session rather than daily avg of cost per session.
 data_exercises %>% 
-  group_by(Session_ID) %>%
   mutate(`Cost Per Session`=(Total_Duration*`Fuel Price Per Gallon`*6 + 15*Total_Duration)) %>%
-  #distinct(Session_ID, .keep_all = T) %>%
   mutate(`Average Cost Per Session`= mean(`Cost Per Session`)) %>%
   arrange(Date) %>%
   tibble -> cost_per_session
@@ -416,55 +415,40 @@ cost.fit = lm(`Cost Per Session` ~
                         Exercises_30 +
                         precipitation + Season - 1, 
                       data = cost.train)
-summary(cost.fit)
-
-glance(cost.fit) %>%
-  knitr::kable( caption = "Model Results")
 
 tidy(cost.fit) %>%
   filter(p.value < 0.05) %>%
+  mutate(cost = estimate) %>%
+  select(term, cost) %>%
   knitr::kable( caption = "Most Significant Factors")
 
 # Testing LM model
 cost.test %>% 
   add_predictions(cost.fit, var="pred") %>%
   drop_na(`Cost Per Session`, pred) %>%
-  summarise(mae = sum(abs(`Cost Per Session` - `pred`))/n()) %>%
-  knitr::kable( caption = "MAE")
-# clean_data_processed %>% 
-#   group_by(Session_ID) %>%
-#   mutate(`Cost Per Session`=(Duration*`Fuel Price Per Gallon`*6 + 15*Duration), n_exercises=n()) %>%
-#   distinct(Session_ID, .keep_all = T) %>%
-#   group_by(Date) %>%
-#   mutate(`Average Cost Per Session`= mean(`Cost Per Session`)) %>%
-#   arrange(Date) -> daily_average_cost_per_hour
-# 
-# fit.full = lm(`Average Cost Per Session` ~ `avg_temperature` + `avg_relative_humidity`+ `avg_dew_point` + `avg_pressure_sea` + `avg_pressure_station` + `avg_visibility` + `avg_health_index` + `precipitation` + `avg_cloud_cover_4`+ COVID + Season + n_exercises - 1, data=daily_average_cost_per_hour)
+  summarise(mae = sum(abs(`Cost Per Session` - `pred`))/n()) ->
+  cost.mae
+
 ```
 
-### Interpreting the coefficients statistically significant factors
+**Analysis of the Cost Per Session Model**
+From this model, we can see that the most significant factors for predicting cost are:
 
-The analysis below for the COVID-19 factors assumes that every other variable is held constant:
+* Exercises_19: First Solo
+* Exercises_23: Pilot Navigation
+* Exercises_24: Instrument Flying
+* Exercises_30: Radio Communications
+* SeasonWinter: Whether or not the session took place in the summer
 
-* `SeasonSummer` - during summer the cost increases by 1 dollar per session
+The model predicts that on average:
 
-* `SeasonWinter` - during winter the cost increases by 2.26 dollars per session
+* Having Exercise 19 (first solo) decreases the cost by $29.50 per session
+* The session being in the winter increases the cost by $3.45 per session
+* etc.
+For the remaining factors refer to *Table 5* in the appendix.
 
-* `avg_health_index` - for each unit increase in the `avg_health_index` the cost increases by 0.74 dollars per session
-
-* `n_exercises` - for each additional exercise the cost decreases by 0.13 dollars per session
-
-* `avg_pressure_sea` - for each unit increase in the `avg_pressure_sea` the cost decreases by 31 dollars per session
-
-* `avg_pressure_station` - for each unit increase in the `avg_pressure_station` the cost increases by 32 dollars per session
-
-* `precipitation` - for each unit increase in the precipitation the cost decreases by 0.07 dollars per session
-
-* `avg_cloud_cover_4` - for each unit increase in the precipitation the cost decreases by 0.34 dollars per session
-
-An interesting observation is that as the number of exercises increasing is associated with the cost decreasing - this does not mean causation, rather just association, meaning that increasing the number of exercises doesn't result in a decrease in cost. A possible explanation is that there can be a lot of easy exercises for beginner sessions that don't take long to complete therefore lowering the duration of the session thus lowering the cost per session.
-
-Unlike what we anticipated from question 1 that Fall would have higher cost, it turned out to be lower than the usual cost as the coefficient for the fall was used as the base state for the equation and the other seasons such as Summer and Winter had a statistically significant coefficients. It was during the Winter that the price per session increases by 2.26 dollars as anticipated to have a spike around December in the fuel cost analysis. Unintuitively, this model shows that COVID-19 had no effect on the price per session due to its high p-value. However, it is important to keep in mind that association  does not mean causation, therefore this does not rule out that COVID-19 cannot affect the price per session.
+Our model has an R^2 value of 0.91 (*Table 6*), meaning that about 91% of the changes in the duration can be explained by changes in our factors.
+We did the same testing method as the above and got an average error of $11.21.
 
 ## Summary 
 
@@ -473,10 +457,28 @@ Overall, the Duration per Session model was not as useful as anticipated due to 
 ***  
 
 # Appendix
-*Figure 1*
 ```{r}
 tidy(duration.fit) %>%
   mutate(minutes = 60*estimate) %>%
   select(term, minutes) %>%
   knitr::kable( caption = "Most Significant Factors")
+```
+
+```{r}
+glance(duration.fit) %>%
+  select(adj.r.squared, r.squared) %>%
+  knitr::kable( caption = "Duration Model Summary")
+```
+
+```{r}
+tidy(cost.fit) %>%
+  mutate(cost = estimate) %>%
+  select(term, cost) %>%
+  knitr::kable( caption = "Most Significant Factors")
+```
+
+```{r}
+glance(cost.fit) %>%
+  select(adj.r.squared, r.squared) %>%
+  knitr::kable( caption = "Cost Model Summary")
 ```
