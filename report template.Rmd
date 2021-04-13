@@ -206,7 +206,7 @@ clean_data_processed <- left_join(clean_data_processed, climate_data, by=c("Date
 
 The external data that is used in this project were gathered from the following sources:
   
-  - Fuel (https://l.messenger.com/l.php?u=https%3A%2F%2Fopen.canada.ca%2Fdata%2Fen%2Fdataset%2Fcbb9182b-df94-4ae6-8a85-b75a34b2f990&h=AT3GmvCK1hAexZ-pV_IDDM9GMSK2XOPfAqWndwBaot2jm-6wGlR9msaGSCBsbdNU2UjfrX6D6oehi521ykUBvDcAONQM_fPJhspKMYYRdIVfocbzjhQpsz9Uz8tkd2QP08OR6g)
+  - Fuel (https://open.canada.ca/data/en/dataset/cbb9182b-df94-4ae6-8a85-b75a34b2f990)
       - Historical fuel data by month, including the cost/gallon
       - Assuming that all planes used in the flight school use the same fuel
       - From preliminary research, it was found that C-172, C-150 and C-152 aircraft models only consume AVGas and gasoline. We decided to use gasoline data for our analysis. 
@@ -221,7 +221,7 @@ The external data that is used in this project were gathered from the following 
 ## Analysis 
 ### Question 1: What are the trends in fuel costs over different time units (daily/season)?
 
-```{r, echo = FALSE, warning=FALSE, message=FALSE, fig.height=3}
+```{r, echo = FALSE, warning=FALSE, message=FALSE, fig.height=2}
 clean_data_processed %>%
   distinct(Year, Month, Day, .keep_all = T) %>%
   mutate_if(is.numeric, replace_na, 0) %>%
@@ -233,7 +233,7 @@ clean_data_processed %>%
 ```
 From the above graph, it can be seen there was a drop in the fuel price per gallon in 2020, leading to lower aircraft operating costs. Therefore, we expect that the Cost per Session to be lower during 2020, i.e. during the pandemic.
 
-```{r}
+```{r, fig.height=2}
 fuel_by_season <- cleaned_fuel_prices %>%
   group_by(Season, Year) %>%
   summarise(Avg_Price_Per_Gallon = mean(Price)) %>%
