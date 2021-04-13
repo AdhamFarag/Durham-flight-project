@@ -348,13 +348,14 @@ The model predicts that on average:
 * Every mm of precipitation decreases the duration by 0.4min
 * The session being in the summer increases the duration by 4.7min
 * etc.
+
 For the remaining factors refer to *Table 3* in the appendix.
 
 Our model has an R^2 value of 0.88 (*Table 4*), meaning that about 88% of the changes in the duration can be explained by changes in our factors.
 To test the model's accuracy, we tried predicting the duration by inputting the test data, and compared the results to the actual duration of the test sessions. We then took the average of the differences (Mean Absolute Error or MAE) and got an average error of ~14min.
 This means that using our model to predict new data will result in a value that's off by 14min on average.
 
-### Question 3: What factors affect cost in a significant matter?
+### Question 3: What factors affect cost in a significant mannerer?
 **How was the data prepared?**
 
 We repeated the same steps as was done in question 2, however we added an extra column for the estimated cost per session.
@@ -445,6 +446,7 @@ The model predicts that on average:
 * Having Exercise 19 (first solo) decreases the cost by $29.50 per session
 * The session being in the winter increases the cost by $3.45 per session
 * etc.
+
 For the remaining factors refer to *Table 5* in the appendix.
 
 Our model has an R^2 value of 0.91 (*Table 6*), meaning that about 91% of the changes in the duration can be explained by changes in our factors.
@@ -452,7 +454,9 @@ We did the same testing method as the above and got an average error of $11.21.
 
 ## Summary 
 
-Overall, the Duration per Session model was not as useful as anticipated due to linear regression not being a good fit for the data, and that can be the result of choosing the incorrect model type. Nonetheless, the second model did indeed provide some useful insight on how the Cost per Session changes depending on the statistically significant factors, despite going against some anticipated patterns found using the fuel analysis. It is important to note that the residual plot for the Cost per Session did not appear to follow a random pattern thus there can be a better model for the data.
+Overall, we can see that Exercises 19, 23, 24, and 30 seem to have a significant effect on the duration.
+Surprisingly, aside from precipitation, most weather conditions were not strong predictors for duration or cost.
+Summer sessions seem to be longer, whereas winter session seem cost more, likely due to increased fuel costs in 2020.
 
 ***  
 
